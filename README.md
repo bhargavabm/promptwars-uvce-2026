@@ -12,14 +12,14 @@ Bankism executes an ordered multi-stage defensive pipeline:
 
 ```mermaid
 flowchart TD
-    A[Untrusted User Message] --> B[1. Normalizer\nguard/normalize.py]
-    B --> C[2. Deterministic Rules\nguard/rules.py]
-    C -->|Rule Match| E[4. Decision Merge\nguard/merge.py]
-    C -->|No Rule Match| D[3. AI Classifier\nguard/classifier.py\nGemini API]
+    A["Untrusted user message"] --> B["1. Normalizer<br/>guard/normalize.py"]
+    B --> C["2. Deterministic rules<br/>guard/rules.py"]
+    C -->|Rule match| E["4. Decision merge<br/>guard/merge.py"]
+    C -->|No rule match| D["3. AI classifier<br/>guard/classifier.py<br/>Gemini API"]
     D --> E
-    E --> F{Verdict Decision}
-    F -->|Approved| G[Core Banking Service\nintegration point\n(not implemented)]
-    F -->|Blocked| H[Fail Closed JSON Response]
+    E --> F{"Verdict decision"}
+    F -->|Approved| G["Core banking service<br/>integration point, not implemented"]
+    F -->|Blocked| H["Fail-closed JSON response"]
 ```
 
 ### Pipeline Stages
@@ -64,7 +64,7 @@ flowchart TD
 ### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
-```
+````
 
 ### 2. Configure Environment Variables
 Copy the example environment configuration:
