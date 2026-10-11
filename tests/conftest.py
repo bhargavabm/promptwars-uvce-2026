@@ -2,11 +2,15 @@
 
 import pytest
 
+from app import reset_rate_limits
+from guard import reset_classifier_cache
+
 
 @pytest.fixture(autouse=True)
-def _temporary_database(tmp_path, monkeypatch):
-    """Point every test at a fresh temporary SQLite database."""
-    monkeypatch.setenv("BANKISM_DB", str(tmp_path / "bankism-test.db"))
+def _reset_state():
+    """Reset in-memory rate limit and classifier cache state between tests."""
+    reset_rate_limits()
+    reset_classifier_cache()
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):

@@ -7,7 +7,9 @@
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <nav class="nav">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <nav class="nav" aria-label="Main">
     <div class="wrap nav-inner">
       <a class="nav-brand" href="/">Bankism</a>
       <div class="nav-links">
@@ -19,7 +21,7 @@
     </div>
   </nav>
 
-  <main class="wrap">
+  <main class="wrap" id="main">
     <header class="header">
       <h1>Privacy Notice</h1>
       <p class="subtitle">
@@ -29,67 +31,60 @@
     </header>
 
     <article class="card">
-      <h2 class="section-title">What we collect</h2>
+      <h2 class="section-title">What we process</h2>
       <p>
-        When you sign in, we store a display name and either the Google subject
-        identifier from your Google account or the phone number you enter. We
-        also store the time you accepted this notice, if you accepted it.
-      </p>
-      <p>
-        If you save banking details, we store the account holder name, the bank
-        name, the IFSC code, and only the last four digits of the account number.
+        When you submit a message on the "Check a message" page, that text is sent
+        from your browser to the Bankism server and then to Google's Gemini API so
+        it can be screened for threats. The server does not keep the message text.
       </p>
 
-      <h2 class="section-title">Why we collect it</h2>
+      <h2 class="section-title">Third parties</h2>
       <p>
-        We collect this information only to demonstrate sign-in and a simple
-        profile. It lets the site show your name in the navigation bar, keep a
-        signed-in session, and let you download or delete what is stored about you.
+        Messages are sent to Google's Gemini API for classification. That is the
+        only third party involved. There is no advertising, tracking, or analytics
+        on this site.
       </p>
 
-      <h2 class="section-title">What we do not collect</h2>
+      <h2 class="section-title">What we do not store</h2>
       <p>
-        We do not store your full account number. Account numbers are reduced to
-        their last four digits as soon as they are saved.
+        We do not store the text you enter. Screening results are held in memory
+        on the server only for a short time so an identical message can be reused,
+        and they are keyed by a one-way hash rather than by the message itself.
       </p>
       <p>
-        We do not store the text you enter on the check page, and we do not keep
-        your messages or screening results.
-      </p>
-      <p>
-        We do not share any data with third parties. There is no advertising,
-        tracking, or analytics on this site.
+        This demonstration has no sign-in. Nothing you type on the profile page is
+        saved, and no account or banking details are stored.
       </p>
 
-      <h2 class="section-title">How long we keep it</h2>
+      <h2 class="section-title">Retention</h2>
       <p>
-        We keep your details only while your account exists. Phone verification
-        codes expire within minutes and are removed after they are used or expire.
-        When you delete your account, we remove your profile, your bank details,
-        and any pending verification code.
+        Messages are not retained. In-memory screening results live only for the
+        life of the server process and are cleared when it restarts.
       </p>
 
-      <h2 class="section-title">Your choices</h2>
+      <h2 class="section-title">Your rights</h2>
       <p>
-        You can download a copy of your data or delete your account at any time
-        from the profile page. Deleting your account signs you out and removes the
-        stored rows described above.
+        India's Digital Personal Data Protection Act, 2023 governs personal data.
+        Because we do not store your messages or profile, there is generally no
+        stored data to access, correct, or erase. If you have a request, please
+        contact the project author.
       </p>
 
       <h2 class="section-title">Contact</h2>
       <p>
         This site is a student prototype built for a hackathon by Bhargava B M,
         a student of UVCE, Bengaluru. It is a demonstration and not a regulated
-        bank. If you have a question about this notice, please contact the project
-        author through the project's public repository.
+        bank, and this notice is not legal advice. If you have a question about
+        this notice, please contact the project author through the project's
+        public repository.
       </p>
     </article>
   </main>
 
   <footer class="footer">
     <div class="wrap">
-      <p>Bankism — prototype project. This is a demonstration, not a real banking service.</p>
-      <p class="credit">
+      <p>
+        Bankism — prototype project. This is a demonstration, not a real banking service.
         Created by <span class="credit-line">Bhargava B M</span>, a student of UVCE, Bengaluru.
       </p>
     </div>

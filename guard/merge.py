@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from guard.classifier import ClassifierResult
 from guard.rules import RuleMatch
-from guard.schema import RiskLevel, ThreatCategory, Verdict
+from guard.schema import ThreatCategory, Verdict
 
 DEFAULT_MAX_TRANSFER_LIMIT = 50000.0
 

@@ -12,7 +12,7 @@
   --card: #FFFFFF;
   --line: #E2DED6;
   --ink: #22262E;
-  --muted: #6B7280;
+  --muted: #64707D;
   --approved: #2F6B4F;
   --blocked: #A23B3B;
   --hero-sub: #C9D6E3;
@@ -47,10 +47,35 @@ a:not(.btn):hover {
 }
 
 a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
 .btn:focus-visible,
-.checkbox:focus-visible {
+.btn:focus,
+.checkbox:focus,
+.checkbox:focus-visible,
+.input:focus,
+.textarea:focus {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
+}
+
+/* ---------- Skip link ---------- */
+
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  background: var(--card);
+  color: var(--navy);
+  border: 1px solid var(--line);
+}
+
+.skip-link:focus {
+  top: 0;
 }
 
 /* ---------- Shared container ---------- */
@@ -429,25 +454,9 @@ a:focus-visible,
   margin: 0;
 }
 
-.credit {
-  margin-top: 8px;
-  animation: credit-fade-up 1.2s ease-out both;
-}
-
 .credit-line {
   font-weight: 600;
   color: var(--navy);
-}
-
-@keyframes credit-fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* ---------- Small screens ---------- */
@@ -476,11 +485,5 @@ a:focus-visible,
 
   .verdict-table th {
     width: 40%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .credit {
-    animation: none;
   }
 }

@@ -3,6 +3,8 @@
 Defensive AI firewall screening untrusted user messages before banking actions run.
 """
 
+import hashlib
+from collections import OrderedDict
 from typing import Optional
 
 from guard import classifier
@@ -11,6 +13,35 @@ from guard.merge import merge_decision
 from guard.normalize import normalize
 from guard.rules import RuleMatch, scan_rules
 from guard.schema import Verdict
+
+# Maximum number of classifier results retained in the in-memory cache.
+CLASSIFIER_CACHE_LIMIT = 256
+_classifier_cache: "OrderedDict[str, ClassifierResult]" = OrderedDict()
+
+
+def reset_classifier_cache() -> None:
+    """Clear the in-memory classifier result cache."""
+    _classifier_cache.clear()
+
+
+def _classify_with_cache(
+    normalized_text: str, api_key: Optional[str]
+) -> ClassifierResult:
+    """Return a cached classifier result, or classify and cache it on a miss."""
+    # Key the cache by a one-way hash so raw message text is never retained.
+    cache_key = hashlib.sha256(normalized_text.encode("utf-8")).hexdigest()
+    cached = _classifier_cache.get(cache_key)
+    if cached is not None:
+        _classifier_cache.move_to_end(cache_key)
+        return cached
+
+    result = classifier.classify_message(message=normalized_text, api_key=api_key)
+    if not result.failed:
+        _classifier_cache[cache_key] = result
+        _classifier_cache.move_to_end(cache_key)
+        if len(_classifier_cache) > CLASSIFIER_CACHE_LIMIT:
+            _classifier_cache.popitem(last=False)
+    return result
 
 
 def evaluate_message(
@@ -47,11 +78,8 @@ def evaluate_message(
             max_transfer_limit=max_transfer_limit,
         )
 
-    # Step 3: AI Classifier screening
-    classifier_result = classifier.classify_message(
-        message=normalized_text,
-        api_key=api_key,
-    )
+    # Step 3: AI Classifier screening (memoized by a hash of the normalised text)
+    classifier_result = _classify_with_cache(normalized_text, api_key)
 
     # Step 4: Deterministic merge decision
     return merge_decision(
@@ -71,4 +99,5 @@ __all__ = [
     "merge_decision",
     "Verdict",
     "evaluate_message",
+    "reset_classifier_cache",
 ]

@@ -2,12 +2,10 @@
 
 import base64
 import json
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-import db
 from app import app
 from guard.classifier import (
     ClassifierResult,
@@ -15,15 +13,8 @@ from guard.classifier import (
     parse_classifier_json,
 )
 from guard.merge import merge_decision
-from guard.normalize import (
-    decode_base64_substrings,
-    decode_hex_substrings,
-    map_leetspeak,
-    normalize,
-    strip_zero_width,
-)
+from guard.normalize import normalize
 from guard.rules import RuleMatch, scan_rules
-from guard.schema import Verdict
 
 
 # =========================================================================
@@ -402,110 +393,11 @@ def test_profile_page(client):
     assert "4821" not in body
 
 
-def test_profile_data_json(client):
-    """GET /static/data/profile.json returns valid JSON with no banking data."""
-    response = client.get("/static/data/profile.json")
-    assert response.status_code == 200
-    data = json.loads(response.get_data(as_text=True))
-    assert isinstance(data, dict)
-    assert "accountNumber" not in data
-    assert "name" not in data
-
-
 def test_health_endpoint(client):
     """GET /health must return status ok with 200."""
     response = client.get("/health")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok"}
-
-
-def test_config_returns_google_client_id_key(client, monkeypatch):
-    """GET /config returns the google_client_id key, null when unset."""
-    monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
-    response = client.get("/config")
-    assert response.status_code == 200
-    data = response.get_json()
-    assert "google_client_id" in data
-    assert data["google_client_id"] is None
-
-
-def test_auth_session_new_client(client):
-    """GET /auth/session reports signed_in false for a new client."""
-    response = client.get("/auth/session")
-    assert response.status_code == 200
-    assert response.get_json() == {"signed_in": False}
-
-
-def test_phone_verify_accepts_demo_code(client):
-    """POST /auth/phone/verify with the code 123456 signs the user in."""
-    response = client.post(
-        "/auth/phone/verify", json={"phone": "+919876543210", "code": "123456"}
-    )
-    assert response.status_code == 200
-    assert response.get_json()["signed_in"] is True
-    session_data = client.get("/auth/session").get_json()
-    assert session_data["signed_in"] is True
-    assert session_data["method"] == "phone"
-
-
-def test_phone_verify_rejects_wrong_code(client):
-    """POST /auth/phone/verify with any other code returns 401."""
-    response = client.post(
-        "/auth/phone/verify", json={"phone": "+919876543210", "code": "000000"}
-    )
-    assert response.status_code == 401
-
-
-def test_google_signin_failure_returns_401(client, monkeypatch):
-    """POST /auth/google returns 401 when token verification fails."""
-    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
-    with patch("urllib.request.urlopen", side_effect=Exception("verification failed")):
-        response = client.post("/auth/google", json={"credential": "bad-token"})
-    assert response.status_code == 401
-    assert response.get_json() == {"error": "Google sign-in could not be verified."}
-
-
-def test_google_signin_success(client, monkeypatch):
-    """POST /auth/google signs in when tokeninfo returns a valid payload."""
-    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
-    payload = json.dumps(
-        {
-            "aud": "test-client-id",
-            "iss": "https://accounts.google.com",
-            "exp": str(int(time.time()) + 3600),
-            "name": "Test User",
-            "email": "test@example.com",
-        }
-    ).encode("utf-8")
-
-    class FakeResponse:
-        """Minimal context-manager response returned by the mocked urlopen."""
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *args):
-            return False
-
-        def read(self):
-            return payload
-
-    with patch("urllib.request.urlopen", return_value=FakeResponse()):
-        response = client.post("/auth/google", json={"credential": "good-token"})
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data["signed_in"] is True
-    assert data["name"] == "Test User"
-    assert data["method"] == "google"
-
-
-def test_logout_clears_session(client):
-    """POST /auth/logout clears the session."""
-    client.post("/auth/phone/verify", json={"phone": "+919876543210", "code": "123456"})
-    assert client.get("/auth/session").get_json()["signed_in"] is True
-    response = client.post("/auth/logout")
-    assert response.status_code == 200
-    assert client.get("/auth/session").get_json()["signed_in"] is False
 
 
 def test_evaluate_missing_payload(client):
@@ -611,7 +503,7 @@ def test_evaluate_zero_width_flow(client):
 
 
 # =========================================================================
-# 6. PRIVACY AND ACCOUNT TESTS
+# 6. PRIVACY TESTS
 # =========================================================================
 
 def test_privacy_page(client):
@@ -619,81 +511,117 @@ def test_privacy_page(client):
     response = client.get("/privacy")
     assert response.status_code == 200
     body = response.get_data(as_text=True)
-    assert "What we collect" in body
+    assert "What we process" in body
 
 
-def test_phone_signin_creates_and_reuses_account():
-    """The first phone sign-in creates a user and the second reuses it."""
-    phone = "+919000000001"
+# =========================================================================
+# 7. SECURITY, LIMITS, CACHING, AND RATE LIMITING
+# =========================================================================
 
-    with app.test_client() as first:
-        response = first.post(
-            "/auth/phone/verify", json={"phone": phone, "code": "123456"}
+def test_evaluate_message_too_long_rejected(client):
+    """POST /evaluate rejects messages longer than 1000 characters."""
+    response = client.post("/evaluate", json={"message": "a" * 1001})
+    assert response.status_code == 400
+    assert "1000" in response.get_json()["error"]
+
+
+def test_evaluate_message_at_limit_allowed(client):
+    """POST /evaluate accepts a message of exactly 1000 characters."""
+    with patch("guard.classifier.classify_message") as mock_classify:
+        mock_classify.return_value = ClassifierResult(
+            intent="balance_inquiry",
+            amount=None,
+            recipient=None,
+            suspected_threats=[],
+            confidence=0.99,
+            failed=False,
         )
-        assert response.status_code == 200
-        assert response.get_json()["signed_in"] is True
-
-    with app.test_client() as second:
-        response = second.post(
-            "/auth/phone/verify", json={"phone": phone, "code": "123456"}
-        )
-        assert response.status_code == 200
-        assert response.get_json()["signed_in"] is True
-
-    conn = db.connect()
-    try:
-        row = conn.execute(
-            "SELECT COUNT(*) AS total FROM users WHERE phone = ?", (phone,)
-        ).fetchone()
-    finally:
-        conn.close()
-    assert row["total"] == 1
-
-
-def test_account_export_requires_sign_in(client):
-    """GET /api/account/export returns 401 when signed out."""
-    response = client.get("/api/account/export")
-    assert response.status_code == 401
-
-
-def test_account_export_returns_user_data(client):
-    """GET /api/account/export returns the signed-in user's profile."""
-    phone = "+919000000002"
-    client.post("/auth/phone/verify", json={"phone": phone, "code": "123456"})
-
-    response = client.get("/api/account/export")
+        response = client.post("/evaluate", json={"message": "a" * 1000})
     assert response.status_code == 200
-    data = response.get_json()
-    assert data["profile"]["phone"] == phone
-    assert "bank_details" in data
+    assert response.get_json()["verdict"] == "approved"
 
 
-def test_account_delete_requires_sign_in(client):
-    """DELETE /api/account returns 401 when signed out."""
-    response = client.delete("/api/account")
-    assert response.status_code == 401
+def test_security_headers_present(client):
+    """Every response carries the required security headers."""
+    response = client.get("/health")
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
+    csp = response.headers["Content-Security-Policy"]
+    assert "default-src 'self'" in csp
+    assert "script-src 'self' https://accounts.google.com" in csp
+    assert "font-src 'self' https://fonts.gstatic.com" in csp
 
 
-def test_account_delete_removes_user_and_bank_details(client):
-    """DELETE /api/account removes the user row and any bank details row."""
-    phone = "+919000000003"
-    client.post("/auth/phone/verify", json={"phone": phone, "code": "123456"})
-
-    conn = db.connect()
-    try:
-        user = conn.execute(
-            "SELECT * FROM users WHERE phone = ?", (phone,)
-        ).fetchone()
-    finally:
-        conn.close()
-    assert user is not None
-    db.save_bank_details(
-        user["id"], "Test Holder", "Test Bank", "ABCD0123456", "4321"
+def test_security_headers_on_evaluate_response(client):
+    """The /evaluate response also carries the security headers."""
+    response = client.post("/evaluate", json={"message": "   "})
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Content-Security-Policy"].startswith(
+        "default-src 'self'"
     )
 
-    response = client.delete("/api/account")
-    assert response.status_code == 200
-    assert response.get_json() == {"deleted": True}
-    assert client.get("/auth/session").get_json()["signed_in"] is False
-    assert db.get_user(user["id"]) is None
-    assert db.get_bank_details(user["id"]) is None
+
+def test_static_assets_use_cache_control(client):
+    """CSS and JS are cached publicly for one hour; HTML pages are not."""
+    css = client.get("/static/style.css")
+    assert css.status_code == 200
+    assert css.headers.get("Cache-Control") == "public, max-age=3600"
+
+    js = client.get("/static/app.js")
+    assert js.status_code == 200
+    assert js.headers.get("Cache-Control") == "public, max-age=3600"
+
+    page = client.get("/")
+    assert "max-age=3600" not in (page.headers.get("Cache-Control") or "")
+
+
+def test_evaluate_rate_limit_returns_429(client):
+    """The 31st POST /evaluate within a minute from one IP returns 429."""
+    for _ in range(30):
+        response = client.post("/evaluate", json={"message": "   "})
+        assert response.status_code == 400
+
+    response = client.post("/evaluate", json={"message": "   "})
+    assert response.status_code == 429
+    assert "error" in response.get_json()
+
+
+def test_classifier_result_cache_reused(client):
+    """A repeated identical message reuses the cached classifier result."""
+    with patch("guard.classifier.classify_message") as mock_classify:
+        mock_classify.return_value = ClassifierResult(
+            intent="balance_inquiry",
+            amount=None,
+            recipient=None,
+            suspected_threats=[],
+            confidence=0.99,
+            failed=False,
+        )
+        first = client.post("/evaluate", json={"message": "Show my account balance"})
+        second = client.post("/evaluate", json={"message": "Show my account balance"})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.get_json()["verdict"] == "approved"
+    assert second.get_json()["verdict"] == "approved"
+    assert mock_classify.call_count == 1
+
+
+def test_failed_classifier_result_not_cached(client):
+    """Failed classifier results are never cached."""
+    with patch("guard.classifier.classify_message") as mock_classify:
+        mock_classify.return_value = ClassifierResult(
+            intent="unknown",
+            amount=None,
+            recipient=None,
+            suspected_threats=["classifier_error"],
+            confidence=0.0,
+            failed=True,
+            error="boom",
+        )
+        client.post("/evaluate", json={"message": "Transfer some funds"})
+        client.post("/evaluate", json={"message": "Transfer some funds"})
+
+    assert mock_classify.call_count == 2

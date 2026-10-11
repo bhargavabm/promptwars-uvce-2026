@@ -7,7 +7,9 @@
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <nav class="nav">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <nav class="nav" aria-label="Main">
     <div class="wrap nav-inner">
       <a class="nav-brand" href="/">Bankism</a>
       <div class="nav-links">
@@ -19,7 +21,7 @@
     </div>
   </nav>
 
-  <main class="wrap">
+  <main class="wrap" id="main">
     <header class="header">
       <h1>Profile</h1>
       <p class="subtitle">Demonstration form. Sample data only.</p>
@@ -108,8 +110,8 @@
     </form>
 
     <div class="actions">
-      <button class="btn btn-primary" id="save-btn" type="button" disabled>Save details</button>
-      <p class="hint">Saving is not available in this demonstration.</p>
+      <button class="btn btn-primary" id="save-btn" type="button" disabled aria-describedby="save-hint">Save details</button>
+      <p class="hint" id="save-hint">Saving is not available in this demonstration.</p>
     </div>
 
     <section class="card">
@@ -117,14 +119,14 @@
       <p class="notice">
         Sign-in is not available in this demonstration. Bank details cannot be saved.
       </p>
-      <p class="hint">We keep your details only while your account exists.</p>
+      <p class="hint">Nothing you type here is stored or sent to the server.</p>
     </section>
   </main>
 
   <footer class="footer">
     <div class="wrap">
-      <p>Bankism — prototype project. This is a demonstration, not a real banking service.</p>
-      <p class="credit">
+      <p>
+        Bankism — prototype project. This is a demonstration, not a real banking service.
         Created by <span class="credit-line">Bhargava B M</span>, a student of UVCE, Bengaluru.
       </p>
     </div>

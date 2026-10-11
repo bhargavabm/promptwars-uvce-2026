@@ -6,7 +6,7 @@ fail-closed pipeline of deterministic rules and an optional Gemini classifier.
 
 ## Structure
 
-- `app.py` — Flask app (`GET /`, `GET /check`, `GET /profile`, `GET /health`, `POST /evaluate`).
+- `app.py` — Flask app (`GET /`, `GET /check`, `GET /profile`, `GET /privacy`, `GET /health`, `POST /evaluate`).
 - `guard/` — firewall pipeline:
   - `normalize.py` — NFKC, zero-width strip, base64/hex decode, lowercase, whitespace collapse, leetspeak mapping.
   - `rules.py` — deterministic regex rules R01–R06.
@@ -14,7 +14,7 @@ fail-closed pipeline of deterministic rules and an optional Gemini classifier.
   - `merge.py` — merges rule matches + classifier result into a `Verdict` (rules are final; LLM can only tighten).
   - `schema.py` — `Verdict` dataclass.
 - `prompts/classifier.txt` — system prompt for the classifier.
-- `static/` — vanilla HTML/CSS/JS pages: `landing.html` (`/`), `check.html` (`/check`), `profile.html` + `profile.js` (`/profile`, a demonstration form only), shared `style.css`, and `data/profile.json` (non-banking sample text).
+- `static/` — vanilla HTML/CSS/JS pages: `landing.html` (`/`), `check.html` (`/check`), `profile.html` + `profile.js` (`/profile`, a demonstration form only), `privacy.html` (`/privacy`), and shared `style.css`.
 - `tests/` — pytest suite (mocked classifier; no API key required).
 
 ## Commands
@@ -22,7 +22,7 @@ fail-closed pipeline of deterministic rules and an optional Gemini classifier.
 ```bash
 pip install -r requirements.txt
 python app.py                # serves on http://127.0.0.1:5000
-python -m pytest -v          # test suite (44 tests, no API key needed)
+python -m pytest -v          # test suite (54 tests, no API key needed)
 ```
 
 ## Environment
@@ -51,7 +51,7 @@ classifier path in `tests/` to test approvals without a key.
   rest, and a privacy review before handling real banking data.
 - Deterministic rule hits always block; a rule block can never be overridden by approval signals.
 - Do not call any real banking API. The approved-forwarding point is the
-  commented `# [CORE BANKING SERVICE INTEGRATION POINT]` block in `app.py`.
+  `# [CORE BANKING SERVICE INTEGRATION POINT]` comment in `app.py`.
 - Do not add dependencies beyond `requirements.txt`.
 - Keep modules small; every function has a docstring.
 - Verdict fields: `verdict`, `risk_level`, `threat_category`, `intent`,
