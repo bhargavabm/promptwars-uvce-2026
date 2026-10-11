@@ -65,12 +65,18 @@
     showStatus("Checking message...");
     checkButton.disabled = true;
 
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () {
+      controller.abort();
+    }, 25000);
+
     fetch("/evaluate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text }),
+      signal: controller.signal
     })
       .then(function (response) {
         return response
@@ -93,10 +99,15 @@
         }
         renderVerdict(result.body);
       })
-      .catch(function () {
+      .catch(function (error) {
+        if (error && error.name === "AbortError") {
+          showStatus("The check took too long. Please try again.");
+          return;
+        }
         showStatus("Could not reach the firewall server. Is it running?");
       })
       .finally(function () {
+        clearTimeout(timeoutId);
         checkButton.disabled = false;
       });
   }

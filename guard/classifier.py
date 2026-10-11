@@ -146,39 +146,48 @@ def classify_message(
     resolved_model = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     system_prompt = load_system_prompt(prompt_path)
 
-    try:
-        client = genai.Client(api_key=resolved_api_key)
-        response = client.models.generate_content(
-            model=resolved_model,
-            contents=message,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                temperature=0.0,
-                response_mime_type="application/json",
-            ),
-        )
-
-        if not response or not response.text:
-            return ClassifierResult(
-                intent="unknown",
-                amount=None,
-                recipient=None,
-                suspected_threats=["empty_response"],
-                confidence=0.0,
-                failed=True,
-                error="Empty response from Gemini model",
+    last_error_name = "Error"
+    for attempt in range(2):
+        try:
+            client = genai.Client(
+                api_key=resolved_api_key,
+                http_options=types.HttpOptions(timeout=15000),
+            )
+            response = client.models.generate_content(
+                model=resolved_model,
+                contents=message,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    temperature=0.0,
+                    response_mime_type="application/json",
+                ),
             )
 
-        return parse_classifier_json(response.text)
+            if not response or not response.text:
+                return ClassifierResult(
+                    intent="unknown",
+                    amount=None,
+                    recipient=None,
+                    suspected_threats=["empty_response"],
+                    confidence=0.0,
+                    failed=True,
+                    error="Empty response from Gemini model",
+                )
 
-    except Exception as e:
-        # Never log the API key or leak stack traces
-        return ClassifierResult(
-            intent="unknown",
-            amount=None,
-            recipient=None,
-            suspected_threats=["classifier_error"],
-            confidence=0.0,
-            failed=True,
-            error=f"Classifier call failed: {type(e).__name__}",
-        )
+            return parse_classifier_json(response.text)
+
+        except Exception as e:
+            # Never log the API key or leak stack traces
+            last_error_name = type(e).__name__
+
+    # At most one retry (two attempts total); any timeout or failure is
+    # fail-closed and no further retries are made.
+    return ClassifierResult(
+        intent="unknown",
+        amount=None,
+        recipient=None,
+        suspected_threats=["classifier_error"],
+        confidence=0.0,
+        failed=True,
+        error=f"Classifier call failed: {last_error_name}",
+    )

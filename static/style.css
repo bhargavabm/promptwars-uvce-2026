@@ -1,19 +1,21 @@
 /* Bankism shared stylesheet.
-   One centred container, a restrained navy and gold palette, and plain
+   One centred container, a restrained navy and teal palette, and plain
    controls. No gradients, shadows, badges, or icons. */
 
 :root {
-  --navy: #14213d;
-  --navy-dark: #0e1830;
-  --gold: #c8a951;
-  --gold-dark: #b8953f;
-  --slate: #5b6670;
-  --ink: #1f2933;
-  --paper: #f4f6f8;
-  --card: #ffffff;
-  --line: #d9dee4;
-  --approved: #2d6a4f;
-  --blocked: #9b2c2c;
+  --navy: #1B2A41;
+  --navy-dark: #111C2E;
+  --teal: #2A7F7A;
+  --teal-dark: #1F6461;
+  --teal-tint: #E6F2F1;
+  --sand: #F7F5F0;
+  --card: #FFFFFF;
+  --line: #E2DED6;
+  --ink: #22262E;
+  --muted: #6B7280;
+  --approved: #2F6B4F;
+  --blocked: #A23B3B;
+  --hero-sub: #C9D6E3;
 }
 
 * {
@@ -26,7 +28,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--sand);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
@@ -35,23 +37,32 @@ body {
   overflow-x: hidden;
 }
 
-a {
-  color: var(--navy);
+a:not(.btn) {
+  color: var(--teal);
+}
+
+a:not(.btn):hover {
+  color: var(--teal-dark);
+  text-decoration: underline;
 }
 
 a:focus-visible,
 .btn:focus-visible,
 .checkbox:focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
 
 /* ---------- Shared container ---------- */
 
-.container {
+.wrap {
+  width: 100%;
   max-width: 1080px;
-  margin: 0 auto;
-  padding: 0 24px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
 }
 
 /* ---------- Navigation ---------- */
@@ -81,11 +92,13 @@ a:focus-visible,
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 16px;
+  flex: 1 1 auto;
 }
 
 .nav-links a {
-  color: var(--navy);
+  color: var(--teal);
   text-decoration: none;
 }
 
@@ -106,7 +119,7 @@ a:focus-visible,
 
 .subtitle {
   margin: 0;
-  color: var(--slate);
+  color: var(--muted);
 }
 
 .section-title {
@@ -134,8 +147,7 @@ a:focus-visible,
 /* ---------- Landing hero ---------- */
 
 .hero {
-  width: 100%;
-  padding: 96px 0;
+  padding: 80px 0;
   background: var(--navy);
 }
 
@@ -148,31 +160,30 @@ a:focus-visible,
 
 .hero-title {
   margin: 0 0 16px;
-  font-size: 80px;
+  font-size: 56px;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: #ffffff;
+  color: var(--card);
 }
 
 .hero-subtitle {
-  margin: 0 0 16px;
-  max-width: 100%;
+  margin: 0 0 24px;
   font-size: 20px;
   font-weight: 300;
-  color: #b8c4d6;
+  color: var(--hero-sub);
 }
 
 .hero-btn {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--navy);
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--card);
   border-radius: 4px;
 }
 
 .hero-btn:hover {
-  background: var(--gold-dark);
-  border-color: var(--gold-dark);
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
 }
 
 @media (min-width: 760px) {
@@ -204,8 +215,8 @@ a:focus-visible,
 
 .input:disabled,
 .textarea:disabled {
-  background: var(--paper);
-  color: var(--slate);
+  background: var(--sand);
+  color: var(--muted);
 }
 
 .textarea {
@@ -214,7 +225,7 @@ a:focus-visible,
 
 .input:focus,
 .textarea:focus {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
 
@@ -232,7 +243,7 @@ a:focus-visible,
   border: 1px solid var(--line);
   border-left: 4px solid var(--navy);
   border-radius: 4px;
-  background: #eef1f6;
+  background: var(--sand);
   color: var(--ink);
 }
 
@@ -281,14 +292,14 @@ a:focus-visible,
 }
 
 .btn-primary {
-  border-color: var(--navy);
-  background: var(--navy);
-  color: #ffffff;
+  border-color: var(--teal);
+  background: var(--teal);
+  color: var(--card);
 }
 
 .btn-primary:hover {
-  background: var(--navy-dark);
-  border-color: var(--navy-dark);
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
 }
 
 .btn:disabled {
@@ -307,7 +318,7 @@ a:focus-visible,
 .hint {
   flex: 1 1 100%;
   margin: 4px 0 0;
-  color: var(--slate);
+  color: var(--muted);
   font-size: 0.9rem;
 }
 
@@ -324,7 +335,7 @@ a:focus-visible,
 }
 
 .examples-label {
-  color: var(--slate);
+  color: var(--muted);
 }
 
 .btn-example {
@@ -337,8 +348,8 @@ a:focus-visible,
 }
 
 .btn-example:hover {
-  background: var(--paper);
-  border-color: var(--navy);
+  background: var(--teal-tint);
+  border-color: var(--teal);
 }
 
 /* ---------- Status and result ---------- */
@@ -349,7 +360,7 @@ a:focus-visible,
 
 .status-text {
   margin: 0;
-  color: var(--slate);
+  color: var(--muted);
 }
 
 .result {
@@ -395,7 +406,7 @@ a:focus-visible,
 .verdict-table th {
   width: 180px;
   font-weight: 600;
-  color: var(--slate);
+  color: var(--muted);
 }
 
 .verdict-table tr:last-child th,
@@ -409,26 +420,9 @@ a:focus-visible,
   background: var(--card);
   border-top: 1px solid var(--line);
   padding: 24px 0;
-  color: var(--slate);
+  color: var(--muted);
   font-size: 0.9rem;
   text-align: center;
-}
-
-.footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  margin: 0 0 12px;
-}
-
-.footer-links a {
-  color: var(--navy);
-  text-decoration: none;
-}
-
-.footer-links a:hover {
-  text-decoration: underline;
 }
 
 .footer p {
@@ -441,21 +435,8 @@ a:focus-visible,
 }
 
 .credit-line {
-  position: relative;
-  display: inline-block;
   font-weight: 600;
   color: var(--navy);
-}
-
-.credit-line::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  height: 2px;
-  width: 0;
-  background: var(--navy);
-  animation: credit-underline 3s ease-in-out infinite;
 }
 
 @keyframes credit-fade-up {
@@ -469,36 +450,20 @@ a:focus-visible,
   }
 }
 
-@keyframes credit-underline {
-  0%,
-  100% {
-    width: 0;
-    opacity: 0.5;
-  }
-  50% {
-    width: 100%;
-    opacity: 1;
-  }
-}
-
 /* ---------- Small screens ---------- */
 
 @media (max-width: 600px) {
-  .container {
-    padding: 0 16px;
-  }
-
-  .nav-links {
-    width: 100%;
-    justify-content: flex-end;
+  .wrap {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .hero {
-    padding: 64px 0;
+    padding: 56px 0;
   }
 
   .hero-title {
-    font-size: 52px;
+    font-size: 36px;
   }
 
   .header h1 {
@@ -515,8 +480,7 @@ a:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .credit,
-  .credit-line::after {
+  .credit {
     animation: none;
   }
 }
