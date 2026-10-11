@@ -234,6 +234,29 @@ def test_classifier_sdk_exception_fail_closed(monkeypatch):
         assert res.intent == "unknown"
 
 
+def test_classifier_timeout_fail_closed(monkeypatch):
+    """Verify a timed-out Gemini call fails closed and is not over-retried."""
+    monkeypatch.setenv("GEMINI_API_KEY", "test_mock_key")
+    with patch("guard.classifier.genai.Client") as mock_client:
+        mock_instance = MagicMock()
+        mock_instance.models.generate_content.side_effect = TimeoutError(
+            "Gemini request timed out"
+        )
+        mock_client.return_value = mock_instance
+
+        res = classify_message("Send 500 to Ravi")
+
+        assert res.failed is True
+        assert res.intent == "unknown"
+        assert "classifier_error" in res.suspected_threats
+        assert "TimeoutError" in res.error
+        # The 15-second http request timeout is configured in milliseconds.
+        http_options = mock_client.call_args_list[0].kwargs["http_options"]
+        assert http_options.model_dump().get("timeout") == 15000
+        # At most one retry, so generate_content ran no more than twice.
+        assert mock_instance.models.generate_content.call_count <= 2
+
+
 # =========================================================================
 # 4. MERGE DECISION TESTS
 # =========================================================================
