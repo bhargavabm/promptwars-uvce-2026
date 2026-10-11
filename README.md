@@ -18,7 +18,7 @@ flowchart TD
     C -->|No Rule Match| D[3. AI Classifier\nguard/classifier.py\nGemini API]
     D --> E
     E --> F{Verdict Decision}
-    F -->|Approved| G[Forward to Core Banking Service]
+    F -->|Approved| G[Core Banking Service\nintegration point\n(not implemented)]
     F -->|Blocked| H[Fail Closed JSON Response]
 ```
 
@@ -58,7 +58,7 @@ flowchart TD
 ## Installation & Setup
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.10+
 - Virtual environment (recommended)
 
 ### 1. Install Dependencies
@@ -74,7 +74,7 @@ cp .env.example .env
 Edit `.env` and set your Gemini API key:
 ```ini
 GEMINI_API_KEY=your_actual_gemini_api_key_here
-MAX_TRANSFER_LIMIT=50000.0
+MAX_TRANSFER_LIMIT=50000
 PORT=5000
 ```
 
@@ -242,8 +242,7 @@ pytest -v
 
 All 40 unit and integration tests will execute and output a final pass count summary:
 ```text
-============================ BANKISM TEST SUMMARY =============================
+============================= BANKISM TEST SUMMARY =============================
 PASSED TESTS COUNT: 40 / 40
-============================= TOTAL EXECUTED: 40 ==============================
-======================== 40 passed in 0.63s ====================================
+============================== TOTAL EXECUTED: 40 ==============================
 ```

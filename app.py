@@ -4,16 +4,23 @@ Flask application exposing REST endpoints to evaluate untrusted natural
 language banking messages against defensive firewall policies.
 """
 
+import json
 import os
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
 from guard import evaluate_message
 
 # Load environment configuration
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
+
+
+@app.route("/", methods=["GET"])
+def index():
+    """Serve the single-page Bankism web interface."""
+    return send_from_directory(app.static_folder, "index.html")
 
 
 @app.route("/health", methods=["GET"])
@@ -25,10 +32,17 @@ def health_check():
 @app.route("/evaluate", methods=["POST"])
 def evaluate_request():
     """Screen untrusted user messages and return structured security verdict."""
-    if not request.is_json:
-        return jsonify({"error": "Request body must be valid JSON"}), 400
-
     data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        # Tolerate a valid JSON object sent without Content-Type: application/json
+        # (common with PowerShell Invoke-RestMethod / Invoke-WebRequest defaults).
+        try:
+            fallback = json.loads(request.get_data(as_text=True))
+        except (ValueError, TypeError):
+            fallback = None
+        if isinstance(fallback, dict):
+            data = fallback
+
     if not isinstance(data, dict):
         return jsonify({"error": "Request payload must be a JSON object"}), 400
 

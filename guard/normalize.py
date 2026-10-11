@@ -11,6 +11,11 @@ import unicodedata
 from typing import List, Tuple
 
 ZERO_WIDTH_PATTERN = re.compile(r"[\u200B\u200C\u200D\uFEFF\u2060]")
+
+# Minimum alphabetic characters required in decoded output before we treat a
+# token as an intentional obfuscated payload rather than an ordinary word.
+MIN_DECODED_ALPHA = 5
+
 LEET_MAP = {
     "0": "o",
     "1": "i",
@@ -29,6 +34,21 @@ def strip_zero_width(text: str) -> Tuple[str, bool]:
     return stripped, (stripped != text)
 
 
+def looks_like_decoded_payload(decoded: str) -> bool:
+    """Return True when decoded bytes resemble an intentional text payload.
+
+    Requires printable output plus enough alphabetic characters to distinguish
+    a genuine obfuscated payload from an ordinary word that coincidentally
+    happens to be a valid base64/hex token. Without this gate, benign words
+    such as "blowfish" or "entrancy" would be silently rewritten.
+    """
+    if len(decoded) < 4:
+        return False
+    if not all(32 <= ord(c) <= 126 or c in "\n\r\t" for c in decoded):
+        return False
+    return len(re.findall(r"[A-Za-z]", decoded)) >= MIN_DECODED_ALPHA
+
+
 def decode_hex_substrings(text: str) -> Tuple[str, bool]:
     """Detect and decode hex substrings that decode to printable text."""
     changed = False
@@ -41,11 +61,7 @@ def decode_hex_substrings(text: str) -> Tuple[str, bool]:
         try:
             raw = bytes.fromhex(hex_str)
             decoded = raw.decode("utf-8")
-            if (
-                len(decoded) >= 4
-                and all(32 <= ord(c) <= 126 or c in "\n\r\t" for c in decoded)
-                and re.search(r"[a-zA-Z]", decoded)
-            ):
+            if looks_like_decoded_payload(decoded):
                 changed = True
                 return decoded
         except Exception:
@@ -68,11 +84,7 @@ def decode_base64_substrings(text: str) -> Tuple[str, bool]:
         try:
             raw = base64.b64decode(token, validate=True)
             decoded = raw.decode("utf-8")
-            if (
-                len(decoded) >= 4
-                and all(32 <= ord(c) <= 126 or c in "\n\r\t" for c in decoded)
-                and re.search(r"[a-zA-Z]", decoded)
-            ):
+            if looks_like_decoded_payload(decoded):
                 changed = True
                 prefix = match.group(0)[: match.start(1) - match.start(0)]
                 suffix = match.group(0)[match.end(1) - match.start(0) :]
