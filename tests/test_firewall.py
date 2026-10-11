@@ -5,7 +5,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from app import app, hash_password
+from app import app
 from guard.classifier import (
     ClassifierResult,
     classify_message,
@@ -323,29 +323,16 @@ def test_merge_llm_suspected_threat_tightens():
 # 5. FLASK APP ENDPOINT TESTS
 # =========================================================================
 
-TEST_USERNAME = "tester"
-TEST_PASSWORD = "correct horse battery staple"
-
-
-def _login(client, username=TEST_USERNAME, password=TEST_PASSWORD):
-    """Log a test client in through the real /login flow (including CSRF)."""
-    client.get("/login")
-    with client.session_transaction() as sess:
-        token = sess.get("csrf_token")
-    return client.post(
-        "/login",
-        data={"username": username, "password": password, "csrf_token": token},
-    )
+TEST_API_KEY = "test-api-key"
 
 
 @pytest.fixture
 def client(monkeypatch):
-    """Create an authenticated Flask test client."""
-    monkeypatch.setenv("BANKISM_USERNAME", TEST_USERNAME)
-    monkeypatch.setenv("BANKISM_PASSWORD_HASH", hash_password(TEST_PASSWORD))
+    """Create a Flask test client that sends the configured API key."""
+    monkeypatch.setenv("BANKISM_API_KEY", TEST_API_KEY)
     app.config["TESTING"] = True
     with app.test_client() as client:
-        _login(client)
+        client.environ_base["HTTP_X_API_KEY"] = TEST_API_KEY
         yield client
 
 
@@ -354,6 +341,30 @@ def test_health_endpoint(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok"}
+
+
+def test_evaluate_without_api_key_401(monkeypatch):
+    """POST /evaluate without the X-API-Key header returns 401 Unauthorized."""
+    monkeypatch.setenv("BANKISM_API_KEY", "secret-key")
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        response = client.post("/evaluate", json={"message": "What's my balance?"})
+        assert response.status_code == 401
+        assert response.get_json() == {"error": "Unauthorized"}
+
+
+def test_evaluate_with_api_key_returns_verdict(monkeypatch):
+    """POST /evaluate with the correct X-API-Key header returns 200 and a verdict."""
+    monkeypatch.setenv("BANKISM_API_KEY", "secret-key")
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        response = client.post(
+            "/evaluate",
+            json={"message": "What's my balance?"},
+            headers={"X-API-Key": "secret-key"},
+        )
+        assert response.status_code == 200
+        assert response.get_json()["verdict"] in ("approved", "blocked")
 
 
 def test_evaluate_missing_payload(client):

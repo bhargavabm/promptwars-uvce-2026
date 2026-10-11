@@ -71,20 +71,12 @@ Copy the example environment configuration:
 ```bash
 cp .env.example .env
 ```
-Edit `.env` and set your Gemini API key:
+Edit `.env` and set your Gemini API key and the firewall API key:
 ```ini
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 MAX_TRANSFER_LIMIT=50000
 PORT=5000
-BANKISM_USERNAME=demo_user
-BANKISM_PASSWORD_HASH=pbkdf2_sha256$210000$...
-BANKISM_SECRET_KEY=your_long_random_string
-BANKISM_COOKIE_SECURE=false
-```
-
-Generate the password hash (never store the plaintext password):
-```bash
-python -c "from app import hash_password; print(hash_password('your-password'))"
+BANKISM_API_KEY=your_api_key_here
 ```
 
 ### 3. Run the Server Locally
@@ -95,35 +87,35 @@ The server will start on `http://127.0.0.1:5000`.
 
 ---
 
-## Authentication
+## API access
 
-The console is protected by session-based authentication (single user, configured
-via environment variables). No external auth dependency is required — it uses
-Flask's signed session cookies and stdlib PBKDF2-HMAC-SHA256 password hashing.
+The evaluation endpoint is protected by an API key. Send the key configured in the
+`BANKISM_API_KEY` environment variable in the `X-API-Key` request header on every
+`POST /evaluate` call. The key is compared in constant time and is never logged or
+echoed back. If `BANKISM_API_KEY` is not set, every request is rejected (fail closed).
 
-- `GET /login` — login form (issues a session CSRF token).
-- `POST /login` — verifies username/password (constant-time comparison).
-- `GET /logout` — clears the session.
-- `GET /` — redirects anonymous users to `/login`.
-- `POST /evaluate` — returns `401 {"error": "Authentication required"}` when anonymous.
-- `GET /health` — intentionally public for platform health checks.
+`GET /health` and `GET /` are open and do not require a key.
 
-Security properties:
+```bash
+curl -X POST http://127.0.0.1:5000/evaluate \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key_here" \
+  -d '{"message": "Send 500 to Ravi for lunch"}'
+```
 
-- **Fail closed**: if `BANKISM_USERNAME` / `BANKISM_PASSWORD_HASH` are not set, no
-  login is possible.
-- **No plaintext secrets**: only a salted PBKDF2 hash is stored; the plaintext password
-  is never persisted.
-- **Hardened cookie**: the session cookie is `HttpOnly` and `SameSite=Lax`; set
-  `BANKISM_COOKIE_SECURE=true` when serving over HTTPS.
-- **CSRF token** required on the login form.
-- The plaintext password and the signing key are never logged or returned.
+A missing or incorrect header returns:
+
+```json
+{"error": "Unauthorized"}
+```
+
+with HTTP status `401`.
 
 ---
 
 ## API Endpoints
 
-All endpoints except `GET /health` and the login routes require an authenticated session.
+`GET /health` and `GET /` are open. `POST /evaluate` requires the `X-API-Key` header.
 
 ### 1. Health Check
 `GET /health`
@@ -137,7 +129,7 @@ All endpoints except `GET /health` and the login routes require an authenticated
 
 ### 2. Evaluate Message
 `POST /evaluate`
-Headers: `Content-Type: application/json`
+Headers: `Content-Type: application/json`, `X-API-Key: your_api_key_here`
 
 **Request Body:**
 ```json
@@ -277,9 +269,9 @@ Run pytest:
 pytest -v
 ```
 
-All 51 unit and integration tests will execute and output a final pass count summary:
+All 42 unit and integration tests will execute and output a final pass count summary:
 ```text
 ============================= BANKISM TEST SUMMARY =============================
-PASSED TESTS COUNT: 51 / 51
-============================== TOTAL EXECUTED: 51 ==============================
+PASSED TESTS COUNT: 42 / 42
+============================== TOTAL EXECUTED: 42 ==============================
 ```

@@ -2,40 +2,40 @@
   "use strict";
 
   var messageInput = document.getElementById("message");
+  var apiKeyInput = document.getElementById("apiKey");
   var checkButton = document.getElementById("check-btn");
   var statusBox = document.getElementById("status");
-  var badge = document.getElementById("badge");
   var statusText = document.getElementById("status-text");
   var resultBox = document.getElementById("result");
+  var verdictHeading = document.getElementById("verdict-heading");
   var riskLevel = document.getElementById("risk-level");
   var threatCategory = document.getElementById("threat-category");
   var intent = document.getElementById("intent");
   var rationale = document.getElementById("rationale");
   var triggeredRules = document.getElementById("triggered-rules");
-  var rawJson = document.getElementById("raw-json");
 
-  /** Set the badge and status line. */
-  function showStatus(kind, text) {
-    badge.textContent = kind === "approved" ? "Approved" : kind === "blocked" ? "Blocked" : "Error";
-    badge.className = "badge " + kind;
+  /** Show a plain status message and hide any previous result. */
+  function showStatus(text) {
+    resultBox.hidden = true;
     statusText.textContent = text;
     statusBox.hidden = false;
   }
 
-  /** Clear and hide the previous result. */
-  function clearResult() {
+  /** Clear the status and result areas. */
+  function clearOutput() {
     resultBox.hidden = true;
     statusBox.hidden = true;
+    verdictHeading.textContent = "";
     riskLevel.textContent = "";
     threatCategory.textContent = "";
     intent.textContent = "";
     rationale.textContent = "";
     triggeredRules.textContent = "";
-    rawJson.textContent = "";
   }
 
-  /** Render a successful verdict payload. */
+  /** Render a successful verdict payload as plain text and a definition list. */
   function renderVerdict(data) {
+    verdictHeading.textContent = data.verdict === "approved" ? "Approved" : "Blocked";
     riskLevel.textContent = data.risk_level || "";
     threatCategory.textContent = data.threat_category || "";
     intent.textContent = data.intent || "";
@@ -44,48 +44,44 @@
     var rules = Array.isArray(data.triggered_rules) ? data.triggered_rules : [];
     triggeredRules.textContent = rules.length ? rules.join(", ") : "None";
 
-    rawJson.textContent = JSON.stringify(data, null, 2);
+    statusBox.hidden = true;
     resultBox.hidden = false;
-
-    if (data.verdict === "approved") {
-      showStatus("approved", "This request is safe to proceed.");
-    } else {
-      showStatus("blocked", "This request was blocked by the firewall.");
-    }
   }
 
-  /** Show a readable error without leaking internals. */
-  function showError(message) {
-    clearResult();
-    showStatus("error", message);
-  }
-
-  /** Send the message to the firewall API and render the verdict. */
+  /** Send the message to the firewall API with the API key and render the verdict. */
   function checkMessage() {
     var text = messageInput.value;
 
     if (!text || !text.trim()) {
-      showError("Please type a banking message first.");
+      showStatus("Please type a banking message first.");
       return;
     }
 
-    clearResult();
-    showStatus("error", "Checking message...");
+    clearOutput();
+    showStatus("Checking message...");
     checkButton.disabled = true;
 
     fetch("/evaluate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKeyInput.value
+      },
       body: JSON.stringify({ message: text })
     })
       .then(function (response) {
-        return response.json().then(function (body) {
-          return { ok: response.ok, status: response.status, body: body };
-        });
+        return response
+          .json()
+          .then(function (body) {
+            return { ok: response.ok, status: response.status, body: body };
+          })
+          .catch(function () {
+            return { ok: response.ok, status: response.status, body: null };
+          });
       })
       .then(function (result) {
         if (result.status === 401) {
-          window.location.href = "/login";
+          showStatus("The API key is missing or incorrect.");
           return;
         }
         if (!result.ok) {
@@ -93,13 +89,13 @@
             result.body && result.body.error
               ? result.body.error
               : "Server returned status " + result.status + ".";
-          showError(detail);
+          showStatus(detail);
           return;
         }
         renderVerdict(result.body);
       })
       .catch(function () {
-        showError("Could not reach the firewall server. Is it running?");
+        showStatus("Could not reach the firewall server. Is it running?");
       })
       .finally(function () {
         checkButton.disabled = false;

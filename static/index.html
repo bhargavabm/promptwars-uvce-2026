@@ -9,10 +9,7 @@
 <body>
   <main class="container">
     <header class="header">
-      <div class="header-top">
-        <h1>Bankism — AI Banking Firewall</h1>
-        <a class="logout-link" href="/logout">Sign out</a>
-      </div>
+      <h1>Bankism — AI Banking Firewall</h1>
       <p class="subtitle">
         Type a banking message and see whether the firewall approves or blocks it.
       </p>
@@ -26,6 +23,15 @@
         rows="4"
         placeholder="e.g. Send 500 to Ravi for lunch"
       ></textarea>
+
+      <label class="label" for="apiKey">API key</label>
+      <input
+        id="apiKey"
+        class="input"
+        type="password"
+        autocomplete="off"
+        placeholder="Sent as the X-API-Key header"
+      />
 
       <div class="actions">
         <button id="check-btn" class="btn btn-primary" type="button">Check message</button>
@@ -42,12 +48,11 @@
     </section>
 
     <section id="status" class="status" hidden>
-      <span id="badge" class="badge"></span>
-      <span id="status-text" class="status-text"></span>
+      <p id="status-text" class="status-text"></p>
     </section>
 
     <section id="result" class="card result" hidden>
-      <h2 class="result-title">Verdict</h2>
+      <h2 id="verdict-heading" class="result-title"></h2>
       <dl class="result-grid">
         <dt>Risk level</dt>
         <dd id="risk-level"></dd>
@@ -60,8 +65,6 @@
         <dt>Triggered rules</dt>
         <dd id="triggered-rules"></dd>
       </dl>
-      <h3 class="raw-title">Raw JSON</h3>
-      <pre id="raw-json" class="raw-json"></pre>
     </section>
   </main>
 

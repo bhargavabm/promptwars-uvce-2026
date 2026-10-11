@@ -1,17 +1,11 @@
 :root {
-  --bg: #0f172a;
-  --panel: #1e293b;
-  --panel-2: #273449;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --border: #334155;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --approved: #16a34a;
-  --approved-bg: #052e16;
-  --blocked: #dc2626;
-  --blocked-bg: #450a0a;
-  --error: #f59e0b;
+  --bg: #f5f6f7;
+  --panel: #ffffff;
+  --text: #1f2328;
+  --muted: #57606a;
+  --border: #d0d7de;
+  --accent: #3d5a80;
+  --accent-dark: #2f4661;
 }
 
 * {
@@ -27,32 +21,14 @@ body {
 }
 
 .container {
-  max-width: 760px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 32px 16px 64px;
 }
 
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .header h1 {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   margin: 0 0 8px;
-}
-
-.logout-link {
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.logout-link:hover {
-  color: var(--primary);
 }
 
 .subtitle {
@@ -63,7 +39,7 @@ body {
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
 }
@@ -71,60 +47,43 @@ body {
 .label {
   display: block;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin: 0 0 6px;
+}
+
+.textarea,
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  margin-bottom: 16px;
 }
 
 .textarea {
-  width: 100%;
   resize: vertical;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel-2);
-  color: var(--text);
-  font: inherit;
 }
 
 .textarea:focus,
 .input:focus {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
-.input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel-2);
-  color: var(--text);
-  font: inherit;
-}
-
-.auth-form .label {
-  margin-top: 14px;
-}
-
-.auth-error {
-  background: var(--blocked-bg);
-  border: 1px solid var(--blocked);
-  color: #f87171;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 0 0 12px;
-}
-
 .actions {
-  margin-top: 16px;
+  margin-top: 4px;
 }
 
 .btn {
   font: inherit;
   cursor: pointer;
-  border-radius: 8px;
   border: 1px solid var(--border);
-  padding: 10px 16px;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  border-radius: 6px;
+  padding: 9px 16px;
+  background: #ffffff;
+  color: var(--text);
 }
 
 .btn:disabled {
@@ -133,18 +92,18 @@ body {
 }
 
 .btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-  font-weight: 600;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 .examples {
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -158,65 +117,27 @@ body {
 }
 
 .btn-example {
-  background: transparent;
-  color: var(--text);
   font-size: 0.85rem;
   padding: 6px 10px;
 }
 
 .btn-example:hover {
-  background: var(--panel-2);
-  border-color: var(--primary);
+  border-color: var(--accent);
 }
 
 .status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   margin-bottom: 20px;
-}
-
-.badge {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.8rem;
-}
-
-.badge.approved {
-  background: var(--approved-bg);
-  color: #4ade80;
-  border: 1px solid var(--approved);
-}
-
-.badge.blocked {
-  background: var(--blocked-bg);
-  color: #f87171;
-  border: 1px solid var(--blocked);
-}
-
-.badge.error {
-  background: #451a03;
-  color: #fbbf24;
-  border: 1px solid var(--error);
 }
 
 .status-text {
   color: var(--muted);
+  margin: 0;
 }
 
-.result-title,
-.raw-title {
-  margin: 0 0 16px;
+.result-title {
   font-size: 1.1rem;
-}
-
-.raw-title {
-  margin-top: 20px;
-  font-size: 0.95rem;
+  font-weight: 400;
+  margin: 0 0 16px;
 }
 
 .result-grid {
@@ -234,16 +155,6 @@ body {
 .result-grid dd {
   margin: 0;
   word-break: break-word;
-}
-
-.raw-json {
-  background: #0b1220;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  overflow-x: auto;
-  margin: 0;
-  font-size: 0.85rem;
 }
 
 @media (max-width: 520px) {
