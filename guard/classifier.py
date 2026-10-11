@@ -8,6 +8,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Any, Dict, List, Optional
 from google import genai
 from google.genai import types
@@ -42,8 +43,13 @@ class ClassifierResult:
         }
 
 
+@lru_cache(maxsize=8)
 def load_system_prompt(prompt_path: Optional[str] = None) -> str:
-    """Load the classifier system prompt from file or return default."""
+    """Load the classifier system prompt from file or return default.
+
+    Cached so a prompt file is only read once per path; the default prompt is
+    stable for the lifetime of the process.
+    """
     if prompt_path and os.path.isfile(prompt_path):
         try:
             with open(prompt_path, "r", encoding="utf-8") as f:
@@ -146,13 +152,16 @@ def classify_message(
     resolved_model = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     system_prompt = load_system_prompt(prompt_path)
 
+    # The client is built once per request; retries reuse it rather than
+    # paying client-construction cost again.
+    client = genai.Client(
+        api_key=resolved_api_key,
+        http_options=types.HttpOptions(timeout=15000),
+    )
+
     last_error_name = "Error"
     for attempt in range(2):
         try:
-            client = genai.Client(
-                api_key=resolved_api_key,
-                http_options=types.HttpOptions(timeout=15000),
-            )
             response = client.models.generate_content(
                 model=resolved_model,
                 contents=message,
