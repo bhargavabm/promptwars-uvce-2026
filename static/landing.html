@@ -14,53 +14,60 @@
       <a href="/check">Check a message</a>
       <a href="/profile">Profile</a>
     </div>
+    <div class="nav-auth" id="nav-auth"></div>
   </nav>
 
-  <main class="container">
+  <main>
     <section class="hero">
-      <h1>Bankism</h1>
-      <p class="hero-text">
-        Bankism is a defensive AI firewall that screens untrusted banking messages
-        before any transaction runs. Each message is treated as untrusted input and
-        is checked by deterministic rules and an AI classifier before a final
-        decision is issued.
-      </p>
-      <a class="btn btn-primary" href="/check">Check a message</a>
-    </section>
-
-    <section class="card section">
-      <h2 class="section-title">How screening works</h2>
-      <p>
-        Every message is first normalized to strip hidden characters, unusual
-        Unicode, and simple encodings such as base64 or hex. Deterministic rules
-        then look for known attack patterns, and an AI classifier reads the message
-        as data rather than instructions. A final merge step produces the decision:
-        rules are authoritative, and the classifier can only make the outcome
-        stricter, never weaker.
-      </p>
-    </section>
-
-    <section class="card section">
-      <h2 class="section-title">What it blocks</h2>
-      <p>
-        Prompt-injection jailbreaks, attempts to override security policy, hidden
-        instructions embedded in payment memos, token obfuscation and encoding
-        tricks, data-exfiltration requests, and unbounded or ambiguous transfers
-        that do not name a specific recipient and amount.
-      </p>
-    </section>
-
-    <section class="card section">
-      <h2 class="section-title">What it approves</h2>
-      <p>
-        Ordinary balance inquiries and bounded peer-to-peer transfers that name a
-        clear recipient and a positive amount within the configured limit.
-      </p>
+      <div class="hero-inner">
+        <h1 class="hero-title">Bankism</h1>
+        <p class="hero-subtitle">Screening every banking message before it moves money.</p>
+        <a class="btn hero-btn" href="/check">Check a message</a>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
     <p>Bankism — prototype project. This is a demonstration, not a real banking service.</p>
+    <p class="credit">
+      Created by <span class="credit-line">Bhargava B M</span>, a student of UVCE, Bengaluru.
+    </p>
   </footer>
+
+  <div class="modal-overlay" id="signin-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+      <button class="modal-close" id="signin-close" type="button">Close</button>
+
+      <h2 id="signin-title">Sign in to Bankism</h2>
+      <p class="modal-lead">Sign in to continue to the firewall tools.</p>
+
+      <button class="btn btn-primary modal-wide" id="google-btn" type="button">Continue with Google</button>
+      <p class="modal-message" id="google-message" hidden></p>
+
+      <hr class="modal-rule" />
+
+      <h3>Continue with phone number</h3>
+      <div class="field">
+        <label class="label" for="phone-input">Phone number</label>
+        <input class="input" id="phone-input" type="tel" placeholder="+91 98765 43210" autocomplete="off" />
+        <button class="btn" id="phone-send" type="button">Send code</button>
+      </div>
+      <div class="field">
+        <label class="label" for="code-input">Six-digit code</label>
+        <input class="input" id="code-input" type="text" inputmode="numeric" maxlength="6" autocomplete="off" />
+        <button class="btn" id="phone-verify" type="button">Verify</button>
+      </div>
+      <p class="modal-note">
+        Demonstration only. A real SMS code requires a messaging provider, which
+        is not connected.
+      </p>
+      <p class="modal-message" id="phone-message" hidden></p>
+
+      <a class="modal-skip" href="#" id="signin-skip">Continue without signing in</a>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="/static/auth.js"></script>
 </body>
 </html>

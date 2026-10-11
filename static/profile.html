@@ -19,22 +19,95 @@
   <main class="container">
     <header class="header">
       <h1>Profile</h1>
-      <p class="subtitle">Demo profile. Sample data only.</p>
+      <p class="subtitle">Demonstration form. Sample data only.</p>
     </header>
 
-    <section class="card profile-card">
-      <div class="avatar" id="profile-initials" aria-hidden="true"></div>
-      <div class="profile-meta">
-        <h2 class="profile-name" id="profile-name">Loading profile…</h2>
-        <p class="profile-account-type" id="profile-account-type"></p>
-        <p class="profile-account-number" id="profile-account-number"></p>
-      </div>
-    </section>
+    <form id="profile-form" class="card" novalidate>
+      <h2 class="section-title">Personal details</h2>
 
-    <section class="card">
-      <h2 class="section-title">Recent activity</h2>
-      <ul class="activity-list" id="activity-list"></ul>
-    </section>
+      <div class="field">
+        <label class="label" for="full-name">Full name</label>
+        <input class="input" id="full-name" name="full_name" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="email">Email address</label>
+        <input class="input" id="email" name="email" type="email" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="phone">Phone number</label>
+        <input class="input" id="phone" name="phone" type="tel" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="city">City</label>
+        <input class="input" id="city" name="city" type="text" autocomplete="off" />
+      </div>
+
+      <p class="notice">
+        Do not enter real banking details on this demonstration site. Nothing
+        entered on this page is stored or transmitted.
+      </p>
+
+      <h2 class="section-title">Banking details</h2>
+
+      <div class="field">
+        <label class="label" for="account-holder">Account holder name</label>
+        <input class="input" id="account-holder" name="account_holder" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="bank-name">Bank name</label>
+        <input class="input" id="bank-name" name="bank_name" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="ifsc">IFSC code</label>
+        <input class="input" id="ifsc" name="ifsc" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="account-number">Account number</label>
+        <input
+          class="input"
+          id="account-number"
+          name="account_number"
+          type="password"
+          inputmode="numeric"
+          autocomplete="off"
+        />
+      </div>
+
+      <h2 class="section-title">Privacy and consent</h2>
+
+      <ul class="consent-list">
+        <li class="consent-item">
+          <label for="consent-history">
+            <input class="checkbox" id="consent-history" name="consent_history" type="checkbox" />
+            Keep my screening history for my own reference
+          </label>
+        </li>
+        <li class="consent-item">
+          <label for="consent-anonymised">
+            <input class="checkbox" id="consent-anonymised" name="consent_anonymised" type="checkbox" />
+            Allow anonymised messages to be used to improve screening rules
+          </label>
+        </li>
+        <li class="consent-item">
+          <label for="consent-alerts">
+            <input class="checkbox" id="consent-alerts" name="consent_alerts" type="checkbox" />
+            Receive security alerts by email
+          </label>
+        </li>
+      </ul>
+    </form>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="save-btn" type="button" disabled>Save details</button>
+      <button class="btn" id="clear-btn" type="button">Clear form</button>
+      <p class="hint">Saving is not available in this demonstration.</p>
+    </div>
   </main>
 
   <footer class="footer">

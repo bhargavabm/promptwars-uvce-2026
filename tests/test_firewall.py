@@ -2,6 +2,7 @@
 
 import base64
 import json
+import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -332,13 +333,19 @@ def client():
 
 
 def test_landing_page(client):
-    """GET / returns the landing page with links to the other pages."""
+    """GET / returns the landing page without the removed sections."""
     response = client.get("/")
     assert response.status_code == 200
     body = response.get_data(as_text=True)
     assert "Bankism" in body
     assert 'href="/check"' in body
     assert 'href="/profile"' in body
+    assert "How screening works" not in body
+    assert "What it blocks" not in body
+    assert "Bhargava" in body
+    assert "Sign in to Bankism" in body
+    assert "Sign in to continue to the firewall tools." in body
+    assert "Screening every banking message before it moves money." in body
 
 
 def test_check_page(client):
@@ -351,21 +358,25 @@ def test_check_page(client):
 
 
 def test_profile_page(client):
-    """GET /profile returns the demo profile page with the sample-data notice."""
+    """GET /profile returns the demonstration form with the expected labels."""
     response = client.get("/profile")
     assert response.status_code == 200
     body = response.get_data(as_text=True)
-    assert "Demo profile. Sample data only." in body
+    assert "IFSC code" in body
+    assert "Account number" in body
+    assert "Keep my screening history" in body
+    assert "Saving is not available in this demonstration." in body
+    assert "4821" not in body
 
 
 def test_profile_data_json(client):
-    """GET /static/data/profile.json returns valid JSON profile data."""
+    """GET /static/data/profile.json returns valid JSON with no banking data."""
     response = client.get("/static/data/profile.json")
     assert response.status_code == 200
     data = json.loads(response.get_data(as_text=True))
     assert isinstance(data, dict)
-    assert data.get("name")
-    assert isinstance(data.get("recentActivity"), list)
+    assert "accountNumber" not in data
+    assert "name" not in data
 
 
 def test_health_endpoint(client):
@@ -373,6 +384,95 @@ def test_health_endpoint(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok"}
+
+
+def test_config_returns_google_client_id_key(client, monkeypatch):
+    """GET /config returns the google_client_id key, null when unset."""
+    monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
+    response = client.get("/config")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "google_client_id" in data
+    assert data["google_client_id"] is None
+
+
+def test_auth_session_new_client(client):
+    """GET /auth/session reports signed_in false for a new client."""
+    response = client.get("/auth/session")
+    assert response.status_code == 200
+    assert response.get_json() == {"signed_in": False}
+
+
+def test_phone_verify_accepts_demo_code(client):
+    """POST /auth/phone/verify with the code 123456 signs the user in."""
+    response = client.post(
+        "/auth/phone/verify", json={"phone": "+919876543210", "code": "123456"}
+    )
+    assert response.status_code == 200
+    assert response.get_json()["signed_in"] is True
+    session_data = client.get("/auth/session").get_json()
+    assert session_data["signed_in"] is True
+    assert session_data["method"] == "phone"
+
+
+def test_phone_verify_rejects_wrong_code(client):
+    """POST /auth/phone/verify with any other code returns 401."""
+    response = client.post(
+        "/auth/phone/verify", json={"phone": "+919876543210", "code": "000000"}
+    )
+    assert response.status_code == 401
+
+
+def test_google_signin_failure_returns_401(client, monkeypatch):
+    """POST /auth/google returns 401 when token verification fails."""
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
+    with patch("urllib.request.urlopen", side_effect=Exception("verification failed")):
+        response = client.post("/auth/google", json={"credential": "bad-token"})
+    assert response.status_code == 401
+    assert response.get_json() == {"error": "Google sign-in could not be verified."}
+
+
+def test_google_signin_success(client, monkeypatch):
+    """POST /auth/google signs in when tokeninfo returns a valid payload."""
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
+    payload = json.dumps(
+        {
+            "aud": "test-client-id",
+            "iss": "https://accounts.google.com",
+            "exp": str(int(time.time()) + 3600),
+            "name": "Test User",
+            "email": "test@example.com",
+        }
+    ).encode("utf-8")
+
+    class FakeResponse:
+        """Minimal context-manager response returned by the mocked urlopen."""
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return payload
+
+    with patch("urllib.request.urlopen", return_value=FakeResponse()):
+        response = client.post("/auth/google", json={"credential": "good-token"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["signed_in"] is True
+    assert data["name"] == "Test User"
+    assert data["method"] == "google"
+
+
+def test_logout_clears_session(client):
+    """POST /auth/logout clears the session."""
+    client.post("/auth/phone/verify", json={"phone": "+919876543210", "code": "123456"})
+    assert client.get("/auth/session").get_json()["signed_in"] is True
+    response = client.post("/auth/logout")
+    assert response.status_code == 200
+    assert client.get("/auth/session").get_json()["signed_in"] is False
 
 
 def test_evaluate_missing_payload(client):

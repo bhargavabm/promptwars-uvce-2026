@@ -1,13 +1,4 @@
 {
-  "name": "Asha Rao",
-  "accountType": "Savings account",
-  "initials": "AR",
-  "accountNumber": "XXXX XXXX 4821",
-  "recentActivity": [
-    { "date": "2026-10-08", "description": "Salary credit", "amount": "+45,000.00" },
-    { "date": "2026-10-08", "description": "Transfer to Ravi", "amount": "-500.00" },
-    { "date": "2026-10-07", "description": "Grocery payment", "amount": "-1,240.00" },
-    { "date": "2026-10-06", "description": "Balance inquiry", "amount": "No change" },
-    { "date": "2026-10-05", "description": "Utility bill payment", "amount": "-860.00" }
-  ]
+  "notice": "Demo profile. Sample data only.",
+  "disclaimer": "This file contains no account names, balances, or banking identifiers."
 }

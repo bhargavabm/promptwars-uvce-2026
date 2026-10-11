@@ -23,6 +23,7 @@
   /** Clear the status and result areas. */
   function clearOutput() {
     resultBox.hidden = true;
+    resultBox.removeAttribute("data-verdict");
     statusBox.hidden = true;
     verdictHeading.textContent = "";
     riskLevel.textContent = "";
@@ -35,6 +36,10 @@
   /** Render a successful verdict payload as plain text and a details table. */
   function renderVerdict(data) {
     verdictHeading.textContent = data.verdict === "approved" ? "Approved" : "Blocked";
+    resultBox.setAttribute(
+      "data-verdict",
+      data.verdict === "approved" ? "approved" : "blocked"
+    );
     riskLevel.textContent = data.risk_level || "";
     threatCategory.textContent = data.threat_category || "";
     intent.textContent = data.intent || "";

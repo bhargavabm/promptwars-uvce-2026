@@ -71,12 +71,21 @@ Copy the example environment configuration:
 ```bash
 cp .env.example .env
 ```
-Edit `.env` and set your Gemini API key:
+Edit `.env` and set your configuration:
 ```ini
 GEMINI_API_KEY=your_actual_gemini_api_key_here
+GOOGLE_CLIENT_ID=
+FLASK_SECRET_KEY=
+BANKISM_ENV=
 MAX_TRANSFER_LIMIT=50000
 PORT=5000
 ```
+
+- `GOOGLE_CLIENT_ID` — the public OAuth client ID used for Google sign-in. Leave
+  empty to disable Google sign-in.
+- `FLASK_SECRET_KEY` — the session signing key. If unset, a random key is
+  generated at startup (sessions then reset on every restart).
+- `BANKISM_ENV` — set to `production` to mark the session cookie as `Secure`.
 
 ### 3. Run the Server Locally
 ```bash
@@ -92,17 +101,53 @@ The web interface is served from the `static/` folder. Each page has its own rou
 
 | Route       | Method | Description                                                    |
 |-------------|--------|----------------------------------------------------------------|
-| `/`         | GET    | Landing page: navigation, overview, and a link to the tester.  |
+| `/`         | GET    | Landing page with the hero and the sign-in dialog.            |
 | `/check`    | GET    | Firewall tester where you submit a banking message.            |
-| `/profile`  | GET    | Demo profile page loaded from `static/data/profile.json`.      |
+| `/profile`  | GET    | Demonstration profile form (personal, banking, and consent sections). |
 | `/health`   | GET    | Health check endpoint.                                         |
 | `/evaluate` | POST   | Screens a message and returns a structured verdict.            |
+| `/config`   | GET    | Returns public client configuration (`google_client_id`).      |
+| `/auth/session` | GET | Returns the current sign-in state.                            |
+| `/auth/google` | POST | Verifies a Google ID token and signs in.                     |
+| `/auth/phone/send` | POST | Validates a phone number for the demonstration code flow. |
+| `/auth/phone/verify` | POST | Verifies the demonstration code and signs in.          |
+| `/auth/logout` | POST | Clears the session.                                          |
 
-The profile page is **sample data only** — it reads a static JSON file with a demo
-account and recent activity. There is **no user login and no account system** in
-this version, and the page does not store anything in `localStorage`.
+The profile page is a **demonstration form only**. Nothing entered on it is stored
+or transmitted, nothing is written to `localStorage` or `sessionStorage`, and no
+field value is sent to the server. The "Save details" button is intentionally
+disabled.
+
+A production version that handled real banking data would require user
+authentication, encryption at rest, and a privacy review before collecting or
+storing any real banking detail.
 
 No endpoint requires an API key; `POST /evaluate` accepts requests directly.
+
+## Sign-in
+
+The landing page shows a sign-in dialog three seconds after load, once per browser
+session, and never to a visitor who is already signed in. The sign-in state is read
+from `GET /auth/session`, and the navigation bar shows the signed-in name with a
+"Sign out" control.
+
+Two options are offered:
+
+- **Continue with Google** uses Google Identity Services. It requires a
+  `GOOGLE_CLIENT_ID` created in the Google Cloud Console, with the local URL
+  (`http://127.0.0.1:5000`) and the deployed URL added as **authorised JavaScript
+  origins**. The server verifies the returned ID token against Google's `tokeninfo`
+  endpoint and accepts it only when the audience matches `GOOGLE_CLIENT_ID`, the
+  issuer is Google, and the token is not expired. If no client ID is configured,
+  the dialog shows "Google sign-in is not configured for this server."
+- **Continue with phone number** is a **demonstration only**. It validates the
+  number's shape and then accepts the fixed code `123456`. No SMS is sent and this
+  is not secure authentication. Production use would require an SMS provider such
+  as Firebase Phone Authentication or Twilio, plus a privacy review.
+
+Google sign-in stores only the name, email, and method in the session. The phone
+flow stores the phone number and method. Session cookies are `HttpOnly` and
+`SameSite=Lax`, and `Secure` when `BANKISM_ENV=production`.
 
 ```bash
 curl -X POST http://127.0.0.1:5000/evaluate \
