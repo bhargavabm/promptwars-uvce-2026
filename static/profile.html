@@ -15,7 +15,7 @@
       <div class="nav-links">
         <a href="/">Home</a>
         <a href="/check">Check a message</a>
-        <a href="/profile">Profile</a>
+        <a href="/profile" aria-current="page">Profile</a>
         <a href="/privacy">Privacy</a>
       </div>
     </div>
@@ -85,9 +85,9 @@
         />
       </div>
 
-      <h2 class="section-title">Privacy and consent</h2>
+      <h2 class="section-title" id="consent-heading">Privacy and consent</h2>
 
-      <ul class="consent-list">
+      <ul class="consent-list" role="list" aria-labelledby="consent-heading">
         <li class="consent-item">
           <label for="consent-history">
             <input class="checkbox" id="consent-history" name="consent_history" type="checkbox" disabled />
