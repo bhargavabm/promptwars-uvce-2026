@@ -71,12 +71,11 @@ Copy the example environment configuration:
 ```bash
 cp .env.example .env
 ```
-Edit `.env` and set your Gemini API key and the firewall API key:
+Edit `.env` and set your Gemini API key:
 ```ini
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 MAX_TRANSFER_LIMIT=50000
 PORT=5000
-BANKISM_API_KEY=your_api_key_here
 ```
 
 ### 3. Run the Server Locally
@@ -87,35 +86,33 @@ The server will start on `http://127.0.0.1:5000`.
 
 ---
 
-## API access
+## Pages and Routes
 
-The evaluation endpoint is protected by an API key. Send the key configured in the
-`BANKISM_API_KEY` environment variable in the `X-API-Key` request header on every
-`POST /evaluate` call. The key is compared in constant time and is never logged or
-echoed back. If `BANKISM_API_KEY` is not set, every request is rejected (fail closed).
+The web interface is served from the `static/` folder. Each page has its own route.
 
-`GET /health` and `GET /` are open and do not require a key.
+| Route       | Method | Description                                                    |
+|-------------|--------|----------------------------------------------------------------|
+| `/`         | GET    | Landing page: navigation, overview, and a link to the tester.  |
+| `/check`    | GET    | Firewall tester where you submit a banking message.            |
+| `/profile`  | GET    | Demo profile page loaded from `static/data/profile.json`.      |
+| `/health`   | GET    | Health check endpoint.                                         |
+| `/evaluate` | POST   | Screens a message and returns a structured verdict.            |
+
+The profile page is **sample data only** — it reads a static JSON file with a demo
+account and recent activity. There is **no user login and no account system** in
+this version, and the page does not store anything in `localStorage`.
+
+No endpoint requires an API key; `POST /evaluate` accepts requests directly.
 
 ```bash
 curl -X POST http://127.0.0.1:5000/evaluate \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your_api_key_here" \
   -d '{"message": "Send 500 to Ravi for lunch"}'
 ```
-
-A missing or incorrect header returns:
-
-```json
-{"error": "Unauthorized"}
-```
-
-with HTTP status `401`.
 
 ---
 
 ## API Endpoints
-
-`GET /health` and `GET /` are open. `POST /evaluate` requires the `X-API-Key` header.
 
 ### 1. Health Check
 `GET /health`
@@ -129,7 +126,7 @@ with HTTP status `401`.
 
 ### 2. Evaluate Message
 `POST /evaluate`
-Headers: `Content-Type: application/json`, `X-API-Key: your_api_key_here`
+Headers: `Content-Type: application/json`
 
 **Request Body:**
 ```json
@@ -269,9 +266,9 @@ Run pytest:
 pytest -v
 ```
 
-All 42 unit and integration tests will execute and output a final pass count summary:
+All 44 unit and integration tests will execute and output a final pass count summary:
 ```text
 ============================= BANKISM TEST SUMMARY =============================
-PASSED TESTS COUNT: 42 / 42
-============================== TOTAL EXECUTED: 42 ==============================
+PASSED TESTS COUNT: 44 / 44
+============================== TOTAL EXECUTED: 44 ==============================
 ```

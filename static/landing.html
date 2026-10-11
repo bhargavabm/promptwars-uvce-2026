@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bankism — AI Banking Firewall</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <a class="nav-brand" href="/">Bankism</a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/check">Check a message</a>
+      <a href="/profile">Profile</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Bankism</h1>
+      <p class="hero-text">
+        Bankism is a defensive AI firewall that screens untrusted banking messages
+        before any transaction runs. Each message is treated as untrusted input and
+        is checked by deterministic rules and an AI classifier before a final
+        decision is issued.
+      </p>
+      <a class="btn btn-primary" href="/check">Check a message</a>
+    </section>
+
+    <section class="card section">
+      <h2 class="section-title">How screening works</h2>
+      <p>
+        Every message is first normalized to strip hidden characters, unusual
+        Unicode, and simple encodings such as base64 or hex. Deterministic rules
+        then look for known attack patterns, and an AI classifier reads the message
+        as data rather than instructions. A final merge step produces the decision:
+        rules are authoritative, and the classifier can only make the outcome
+        stricter, never weaker.
+      </p>
+    </section>
+
+    <section class="card section">
+      <h2 class="section-title">What it blocks</h2>
+      <p>
+        Prompt-injection jailbreaks, attempts to override security policy, hidden
+        instructions embedded in payment memos, token obfuscation and encoding
+        tricks, data-exfiltration requests, and unbounded or ambiguous transfers
+        that do not name a specific recipient and amount.
+      </p>
+    </section>
+
+    <section class="card section">
+      <h2 class="section-title">What it approves</h2>
+      <p>
+        Ordinary balance inquiries and bounded peer-to-peer transfers that name a
+        clear recipient and a positive amount within the configured limit.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Bankism — prototype project. This is a demonstration, not a real banking service.</p>
+  </footer>
+</body>
+</html>

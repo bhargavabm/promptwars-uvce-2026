@@ -2,7 +2,6 @@
   "use strict";
 
   var messageInput = document.getElementById("message");
-  var apiKeyInput = document.getElementById("apiKey");
   var checkButton = document.getElementById("check-btn");
   var statusBox = document.getElementById("status");
   var statusText = document.getElementById("status-text");
@@ -33,7 +32,7 @@
     triggeredRules.textContent = "";
   }
 
-  /** Render a successful verdict payload as plain text and a definition list. */
+  /** Render a successful verdict payload as plain text and a details table. */
   function renderVerdict(data) {
     verdictHeading.textContent = data.verdict === "approved" ? "Approved" : "Blocked";
     riskLevel.textContent = data.risk_level || "";
@@ -48,7 +47,7 @@
     resultBox.hidden = false;
   }
 
-  /** Send the message to the firewall API with the API key and render the verdict. */
+  /** Send the message to the firewall API and render the returned verdict. */
   function checkMessage() {
     var text = messageInput.value;
 
@@ -64,8 +63,7 @@
     fetch("/evaluate", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": apiKeyInput.value
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({ message: text })
     })
@@ -80,10 +78,6 @@
           });
       })
       .then(function (result) {
-        if (result.status === 401) {
-          showStatus("The API key is missing or incorrect.");
-          return;
-        }
         if (!result.ok) {
           var detail =
             result.body && result.body.error

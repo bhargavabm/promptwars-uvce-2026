@@ -4,7 +4,6 @@ Flask application exposing REST endpoints to evaluate untrusted natural
 language banking messages against defensive firewall policies.
 """
 
-import hmac
 import json
 import os
 
@@ -19,19 +18,22 @@ load_dotenv()
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 
-def api_key_is_valid() -> bool:
-    """Validate the X-API-Key header against BANKISM_API_KEY (fail closed)."""
-    expected = os.getenv("BANKISM_API_KEY", "")
-    provided = request.headers.get("X-API-Key", "")
-    if not expected:
-        return False
-    return hmac.compare_digest(provided.encode("utf-8"), expected.encode("utf-8"))
-
-
 @app.route("/", methods=["GET"])
-def index():
-    """Serve the single-page Bankism web interface."""
-    return send_from_directory(app.static_folder, "index.html")
+def landing_page():
+    """Serve the static landing page."""
+    return send_from_directory(app.static_folder, "landing.html")
+
+
+@app.route("/check", methods=["GET"])
+def check_page():
+    """Serve the firewall tester page."""
+    return send_from_directory(app.static_folder, "check.html")
+
+
+@app.route("/profile", methods=["GET"])
+def profile_page():
+    """Serve the demo profile page."""
+    return send_from_directory(app.static_folder, "profile.html")
 
 
 @app.route("/health", methods=["GET"])
@@ -43,10 +45,6 @@ def health_check():
 @app.route("/evaluate", methods=["POST"])
 def evaluate_request():
     """Screen untrusted user messages and return structured security verdict."""
-    if not api_key_is_valid():
-        # Never log or echo the supplied key; fail closed when unconfigured.
-        return jsonify({"error": "Unauthorized"}), 401
-
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         # Tolerate a valid JSON object sent without Content-Type: application/json
@@ -86,7 +84,7 @@ def evaluate_request():
         return jsonify(verdict.to_dict()), 200
 
     except Exception:
-        # Never log API keys or return internal stack traces to the client
+        # Never return internal stack traces to the client
         return jsonify({"error": "Internal security firewall error during evaluation"}), 500
 
 

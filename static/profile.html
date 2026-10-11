@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bankism — Profile</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <a class="nav-brand" href="/">Bankism</a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/check">Check a message</a>
+      <a href="/profile">Profile</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="header">
+      <h1>Profile</h1>
+      <p class="subtitle">Demo profile. Sample data only.</p>
+    </header>
+
+    <section class="card profile-card">
+      <div class="avatar" id="profile-initials" aria-hidden="true"></div>
+      <div class="profile-meta">
+        <h2 class="profile-name" id="profile-name">Loading profile…</h2>
+        <p class="profile-account-type" id="profile-account-type"></p>
+        <p class="profile-account-number" id="profile-account-number"></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Recent activity</h2>
+      <ul class="activity-list" id="activity-list"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Bankism — prototype project. This is a demonstration, not a real banking service.</p>
+  </footer>
+
+  <script src="/static/profile.js"></script>
+</body>
+</html>

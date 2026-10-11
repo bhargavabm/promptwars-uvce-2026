@@ -3,13 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bankism — AI Banking Firewall</title>
+  <title>Bankism — Check a message</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+  <nav class="nav">
+    <a class="nav-brand" href="/">Bankism</a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/check">Check a message</a>
+      <a href="/profile">Profile</a>
+    </div>
+  </nav>
+
   <main class="container">
     <header class="header">
-      <h1>Bankism — AI Banking Firewall</h1>
+      <h1>Check a message</h1>
       <p class="subtitle">
         Type a banking message and see whether the firewall approves or blocks it.
       </p>
@@ -23,15 +32,6 @@
         rows="4"
         placeholder="e.g. Send 500 to Ravi for lunch"
       ></textarea>
-
-      <label class="label" for="apiKey">API key</label>
-      <input
-        id="apiKey"
-        class="input"
-        type="password"
-        autocomplete="off"
-        placeholder="Sent as the X-API-Key header"
-      />
 
       <div class="actions">
         <button id="check-btn" class="btn btn-primary" type="button">Check message</button>
@@ -53,20 +53,21 @@
 
     <section id="result" class="card result" hidden>
       <h2 id="verdict-heading" class="result-title"></h2>
-      <dl class="result-grid">
-        <dt>Risk level</dt>
-        <dd id="risk-level"></dd>
-        <dt>Threat category</dt>
-        <dd id="threat-category"></dd>
-        <dt>Intent</dt>
-        <dd id="intent"></dd>
-        <dt>Rationale</dt>
-        <dd id="rationale"></dd>
-        <dt>Triggered rules</dt>
-        <dd id="triggered-rules"></dd>
-      </dl>
+      <table class="verdict-table">
+        <tbody>
+          <tr><th scope="row">Risk level</th><td id="risk-level"></td></tr>
+          <tr><th scope="row">Threat category</th><td id="threat-category"></td></tr>
+          <tr><th scope="row">Intent</th><td id="intent"></td></tr>
+          <tr><th scope="row">Rationale</th><td id="rationale"></td></tr>
+          <tr><th scope="row">Triggered rules</th><td id="triggered-rules"></td></tr>
+        </tbody>
+      </table>
     </section>
   </main>
+
+  <footer class="footer">
+    <p>Bankism — prototype project. This is a demonstration, not a real banking service.</p>
+  </footer>
 
   <script src="/static/app.js"></script>
 </body>

@@ -1,3 +1,8 @@
+/* Bankism shared stylesheet.
+   Neutral palette: near-black text on white / very light grey, one muted blue
+   for buttons and links, light grey borders. No gradients, shadows, badges,
+   bright accents, or decorative icons. */
+
 :root {
   --bg: #f5f6f7;
   --panel: #ffffff;
@@ -12,54 +17,138 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  font-size: 16px;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
+a {
+  color: var(--accent);
+}
+
+/* ---------- Navigation ---------- */
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-brand {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.nav-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Layout ---------- */
+
 .container {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding: 24px 16px 48px;
+}
+
+.header {
+  margin-bottom: 24px;
 }
 
 .header h1 {
-  font-size: 1.5rem;
   margin: 0 0 8px;
+  font-size: 1.6rem;
 }
 
 .subtitle {
+  margin: 0;
   color: var(--muted);
-  margin: 0 0 24px;
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
 }
 
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 20px;
   margin-bottom: 20px;
 }
 
+.section {
+  margin-bottom: 20px;
+}
+
+.section p {
+  margin: 0;
+  color: var(--text);
+}
+
+/* ---------- Landing hero ---------- */
+
+.hero {
+  padding: 8px 0 24px;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: 1.9rem;
+}
+
+.hero-text {
+  max-width: 60ch;
+  margin: 0 0 20px;
+  color: var(--text);
+}
+
+/* ---------- Form controls ---------- */
+
 .label {
   display: block;
+  margin-bottom: 6px;
   font-weight: 600;
-  margin: 0 0 6px;
 }
 
 .textarea,
 .input {
+  display: block;
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--panel);
   color: var(--text);
   font: inherit;
-  margin-bottom: 16px;
 }
 
 .textarea {
@@ -73,97 +162,195 @@ body {
 }
 
 .actions {
-  margin-top: 4px;
+  margin-top: 16px;
 }
 
 .btn {
-  font: inherit;
-  cursor: pointer;
+  display: inline-block;
+  padding: 9px 16px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 9px 16px;
-  background: #ffffff;
+  background: var(--panel);
   color: var(--text);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .btn-primary {
-  background: var(--accent);
   border-color: var(--accent);
+  background: var(--accent);
   color: #ffffff;
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover {
   background: var(--accent-dark);
   border-color: var(--accent-dark);
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .examples {
-  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
 .examples-label {
   color: var(--muted);
-  font-size: 0.9rem;
-  width: 100%;
 }
 
 .btn-example {
-  font-size: 0.85rem;
-  padding: 6px 10px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
 }
 
-.btn-example:hover {
-  border-color: var(--accent);
-}
+/* ---------- Status and result ---------- */
 
 .status {
   margin-bottom: 20px;
 }
 
 .status-text {
-  color: var(--muted);
   margin: 0;
+  color: var(--muted);
 }
 
 .result-title {
-  font-size: 1.1rem;
-  font-weight: 400;
-  margin: 0 0 16px;
+  margin: 0 0 12px;
+  font-size: 1.3rem;
 }
 
-.result-grid {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 8px 16px;
-  margin: 0;
+.verdict-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.result-grid dt {
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.result-grid dd {
-  margin: 0;
+.verdict-table th,
+.verdict-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
   word-break: break-word;
 }
 
-@media (max-width: 520px) {
-  .result-grid {
-    grid-template-columns: 1fr;
-    gap: 2px;
+.verdict-table th {
+  width: 40%;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.verdict-table tr:last-child th,
+.verdict-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------- Profile ---------- */
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #e6e9ee;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-meta {
+  min-width: 0;
+}
+
+.profile-name {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.profile-account-type,
+.profile-account-number {
+  margin: 0;
+  color: var(--muted);
+}
+
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.activity-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-desc {
+  flex: 1 1 auto;
+}
+
+.activity-amount {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.activity-date {
+  flex: 1 1 100%;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.activity-empty {
+  color: var(--muted);
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.footer p {
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.6rem;
   }
 
-  .result-grid dt {
-    margin-top: 10px;
+  .header h1 {
+    font-size: 1.4rem;
+  }
+
+  .card {
+    padding: 16px;
   }
 }

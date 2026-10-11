@@ -323,17 +323,49 @@ def test_merge_llm_suspected_threat_tightens():
 # 5. FLASK APP ENDPOINT TESTS
 # =========================================================================
 
-TEST_API_KEY = "test-api-key"
-
-
 @pytest.fixture
-def client(monkeypatch):
-    """Create a Flask test client that sends the configured API key."""
-    monkeypatch.setenv("BANKISM_API_KEY", TEST_API_KEY)
+def client():
+    """Create a Flask test client."""
     app.config["TESTING"] = True
     with app.test_client() as client:
-        client.environ_base["HTTP_X_API_KEY"] = TEST_API_KEY
         yield client
+
+
+def test_landing_page(client):
+    """GET / returns the landing page with links to the other pages."""
+    response = client.get("/")
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Bankism" in body
+    assert 'href="/check"' in body
+    assert 'href="/profile"' in body
+
+
+def test_check_page(client):
+    """GET /check returns the firewall tester page."""
+    response = client.get("/check")
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Banking message" in body
+    assert 'id="message"' in body
+
+
+def test_profile_page(client):
+    """GET /profile returns the demo profile page with the sample-data notice."""
+    response = client.get("/profile")
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Demo profile. Sample data only." in body
+
+
+def test_profile_data_json(client):
+    """GET /static/data/profile.json returns valid JSON profile data."""
+    response = client.get("/static/data/profile.json")
+    assert response.status_code == 200
+    data = json.loads(response.get_data(as_text=True))
+    assert isinstance(data, dict)
+    assert data.get("name")
+    assert isinstance(data.get("recentActivity"), list)
 
 
 def test_health_endpoint(client):
@@ -341,30 +373,6 @@ def test_health_endpoint(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok"}
-
-
-def test_evaluate_without_api_key_401(monkeypatch):
-    """POST /evaluate without the X-API-Key header returns 401 Unauthorized."""
-    monkeypatch.setenv("BANKISM_API_KEY", "secret-key")
-    app.config["TESTING"] = True
-    with app.test_client() as client:
-        response = client.post("/evaluate", json={"message": "What's my balance?"})
-        assert response.status_code == 401
-        assert response.get_json() == {"error": "Unauthorized"}
-
-
-def test_evaluate_with_api_key_returns_verdict(monkeypatch):
-    """POST /evaluate with the correct X-API-Key header returns 200 and a verdict."""
-    monkeypatch.setenv("BANKISM_API_KEY", "secret-key")
-    app.config["TESTING"] = True
-    with app.test_client() as client:
-        response = client.post(
-            "/evaluate",
-            json={"message": "What's my balance?"},
-            headers={"X-API-Key": "secret-key"},
-        )
-        assert response.status_code == 200
-        assert response.get_json()["verdict"] in ("approved", "blocked")
 
 
 def test_evaluate_missing_payload(client):
