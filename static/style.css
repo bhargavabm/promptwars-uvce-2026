@@ -32,9 +32,27 @@ body {
   padding: 32px 16px 64px;
 }
 
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .header h1 {
   font-size: 1.6rem;
   margin: 0 0 8px;
+}
+
+.logout-link {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.logout-link:hover {
+  color: var(--primary);
 }
 
 .subtitle {
@@ -67,9 +85,33 @@ body {
   font: inherit;
 }
 
-.textarea:focus {
+.textarea:focus,
+.input:focus {
   outline: 2px solid var(--primary);
   outline-offset: 1px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+}
+
+.auth-form .label {
+  margin-top: 14px;
+}
+
+.auth-error {
+  background: var(--blocked-bg);
+  border: 1px solid var(--blocked);
+  color: #f87171;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
 }
 
 .actions {

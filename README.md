@@ -76,6 +76,15 @@ Edit `.env` and set your Gemini API key:
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 MAX_TRANSFER_LIMIT=50000
 PORT=5000
+BANKISM_USERNAME=demo_user
+BANKISM_PASSWORD_HASH=pbkdf2_sha256$210000$...
+BANKISM_SECRET_KEY=your_long_random_string
+BANKISM_COOKIE_SECURE=false
+```
+
+Generate the password hash (never store the plaintext password):
+```bash
+python -c "from app import hash_password; print(hash_password('your-password'))"
 ```
 
 ### 3. Run the Server Locally
@@ -86,7 +95,35 @@ The server will start on `http://127.0.0.1:5000`.
 
 ---
 
+## Authentication
+
+The console is protected by session-based authentication (single user, configured
+via environment variables). No external auth dependency is required — it uses
+Flask's signed session cookies and stdlib PBKDF2-HMAC-SHA256 password hashing.
+
+- `GET /login` — login form (issues a session CSRF token).
+- `POST /login` — verifies username/password (constant-time comparison).
+- `GET /logout` — clears the session.
+- `GET /` — redirects anonymous users to `/login`.
+- `POST /evaluate` — returns `401 {"error": "Authentication required"}` when anonymous.
+- `GET /health` — intentionally public for platform health checks.
+
+Security properties:
+
+- **Fail closed**: if `BANKISM_USERNAME` / `BANKISM_PASSWORD_HASH` are not set, no
+  login is possible.
+- **No plaintext secrets**: only a salted PBKDF2 hash is stored; the plaintext password
+  is never persisted.
+- **Hardened cookie**: the session cookie is `HttpOnly` and `SameSite=Lax`; set
+  `BANKISM_COOKIE_SECURE=true` when serving over HTTPS.
+- **CSRF token** required on the login form.
+- The plaintext password and the signing key are never logged or returned.
+
+---
+
 ## API Endpoints
+
+All endpoints except `GET /health` and the login routes require an authenticated session.
 
 ### 1. Health Check
 `GET /health`
@@ -240,9 +277,9 @@ Run pytest:
 pytest -v
 ```
 
-All 40 unit and integration tests will execute and output a final pass count summary:
+All 51 unit and integration tests will execute and output a final pass count summary:
 ```text
 ============================= BANKISM TEST SUMMARY =============================
-PASSED TESTS COUNT: 40 / 40
-============================== TOTAL EXECUTED: 40 ==============================
+PASSED TESTS COUNT: 51 / 51
+============================== TOTAL EXECUTED: 51 ==============================
 ```

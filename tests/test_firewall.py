@@ -5,7 +5,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from app import app
+from app import app, hash_password
 from guard.classifier import (
     ClassifierResult,
     classify_message,
@@ -323,11 +323,29 @@ def test_merge_llm_suspected_threat_tightens():
 # 5. FLASK APP ENDPOINT TESTS
 # =========================================================================
 
+TEST_USERNAME = "tester"
+TEST_PASSWORD = "correct horse battery staple"
+
+
+def _login(client, username=TEST_USERNAME, password=TEST_PASSWORD):
+    """Log a test client in through the real /login flow (including CSRF)."""
+    client.get("/login")
+    with client.session_transaction() as sess:
+        token = sess.get("csrf_token")
+    return client.post(
+        "/login",
+        data={"username": username, "password": password, "csrf_token": token},
+    )
+
+
 @pytest.fixture
-def client():
-    """Create a Flask test client."""
+def client(monkeypatch):
+    """Create an authenticated Flask test client."""
+    monkeypatch.setenv("BANKISM_USERNAME", TEST_USERNAME)
+    monkeypatch.setenv("BANKISM_PASSWORD_HASH", hash_password(TEST_PASSWORD))
     app.config["TESTING"] = True
     with app.test_client() as client:
+        _login(client)
         yield client
 
 

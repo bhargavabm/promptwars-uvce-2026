@@ -84,6 +84,10 @@
         });
       })
       .then(function (result) {
+        if (result.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
         if (!result.ok) {
           var detail =
             result.body && result.body.error
