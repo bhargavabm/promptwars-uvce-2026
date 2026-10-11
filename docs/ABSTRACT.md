@@ -56,7 +56,7 @@ JavaScript with no framework and no build step.
 
 ## Results
 
-The project ships with a 44-test suite that covers normalization, each rule, the
+The project ships with a 54-test suite that covers normalization, each rule, the
 classifier parsing and fail-closed paths, the merge policy, and the HTTP
 endpoints. The classifier is mocked in tests, so the full suite runs locally
 without any external API key.

@@ -92,7 +92,7 @@ Untrusted message
 
 ## Testing
 
-- 44 automated tests: normalization, every rule, classifier parsing and
+- 54 automated tests: normalization, every rule, classifier parsing and
   fail-closed paths, merge policy, and HTTP endpoints.
 - The classifier is mocked, so the suite runs offline with no API key.
 
