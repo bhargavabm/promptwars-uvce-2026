@@ -77,6 +77,7 @@ GEMINI_API_KEY=your_actual_gemini_api_key_here
 GOOGLE_CLIENT_ID=
 FLASK_SECRET_KEY=
 BANKISM_ENV=
+BANKISM_DB=bankism.db
 MAX_TRANSFER_LIMIT=50000
 PORT=5000
 ```
@@ -85,7 +86,10 @@ PORT=5000
   empty to disable Google sign-in.
 - `FLASK_SECRET_KEY` — the session signing key. If unset, a random key is
   generated at startup (sessions then reset on every restart).
-- `BANKISM_ENV` — set to `production` to mark the session cookie as `Secure`.
+- `BANKISM_ENV` — set to `production` to mark the session cookie as `Secure` and
+  to stop the phone flow from returning the demonstration code in the response.
+- `BANKISM_DB` — the SQLite database file. Defaults to `bankism.db` next to
+  `app.py`. The file is created on first run and is git-ignored.
 
 ### 3. Run the Server Locally
 ```bash
@@ -103,20 +107,24 @@ The web interface is served from the `static/` folder. Each page has its own rou
 |-------------|--------|----------------------------------------------------------------|
 | `/`         | GET    | Landing page with the hero and the sign-in dialog.            |
 | `/check`    | GET    | Firewall tester where you submit a banking message.            |
-| `/profile`  | GET    | Demonstration profile form (personal, banking, and consent sections). |
+| `/profile`  | GET    | Demonstration profile form and the privacy controls.          |
+| `/privacy`  | GET    | Plain-language privacy notice.                                 |
 | `/health`   | GET    | Health check endpoint.                                         |
 | `/evaluate` | POST   | Screens a message and returns a structured verdict.            |
 | `/config`   | GET    | Returns public client configuration (`google_client_id`).      |
 | `/auth/session` | GET | Returns the current sign-in state.                            |
-| `/auth/google` | POST | Verifies a Google ID token and signs in.                     |
-| `/auth/phone/send` | POST | Validates a phone number for the demonstration code flow. |
-| `/auth/phone/verify` | POST | Verifies the demonstration code and signs in.          |
+| `/auth/google` | POST | Verifies a Google ID token and signs in or creates the account. |
+| `/auth/phone/send` | POST | Creates a demonstration code for a phone number.         |
+| `/auth/phone/verify` | POST | Verifies the code and signs in or creates the account.   |
 | `/auth/logout` | POST | Clears the session.                                          |
+| `/api/account/export` | GET | Returns the signed-in user's profile and bank details.   |
+| `/api/account` | DELETE | Deletes the signed-in account and all related rows.          |
 
-The profile page is a **demonstration form only**. Nothing entered on it is stored
-or transmitted, nothing is written to `localStorage` or `sessionStorage`, and no
-field value is sent to the server. The "Save details" button is intentionally
-disabled.
+The profile page keeps the personal, banking, and consent sections as a
+**demonstration form only**. The demonstration form is not submitted, nothing is
+written to `localStorage` or `sessionStorage`, and the "Save details" button stays
+disabled. The separate "Privacy and data" section is real: it downloads or
+deletes the account that was created at sign-in.
 
 A production version that handled real banking data would require user
 authentication, encryption at rest, and a privacy review before collecting or
@@ -129,9 +137,13 @@ No endpoint requires an API key; `POST /evaluate` accepts requests directly.
 The landing page shows a sign-in dialog three seconds after load, once per browser
 session, and never to a visitor who is already signed in. The sign-in state is read
 from `GET /auth/session`, and the navigation bar shows the signed-in name with a
-"Sign out" control.
+"Sign out" control on every page.
 
-Two options are offered:
+The dialog has two tabs. **Sign in** signs an existing user in. **Create account**
+requires the visitor to tick "I have read and accept the Privacy Notice"; the
+Google and phone controls stay disabled until the box is ticked.
+
+Two options are offered on both tabs:
 
 - **Continue with Google** uses Google Identity Services. It requires a
   `GOOGLE_CLIENT_ID` created in the Google Cloud Console, with the local URL
@@ -140,14 +152,48 @@ Two options are offered:
   endpoint and accepts it only when the audience matches `GOOGLE_CLIENT_ID`, the
   issuer is Google, and the token is not expired. If no client ID is configured,
   the dialog shows "Google sign-in is not configured for this server."
-- **Continue with phone number** is a **demonstration only**. It validates the
-  number's shape and then accepts the fixed code `123456`. No SMS is sent and this
-  is not secure authentication. Production use would require an SMS provider such
-  as Firebase Phone Authentication or Twilio, plus a privacy review.
+- **Continue with phone number** is a **demonstration only**. The server creates a
+  short-lived code and, outside production, returns it in the response. The fixed
+  code `123456` is always accepted as well. No SMS is sent and this is not secure
+  authentication. Production use would require an SMS provider such as Firebase
+  Phone Authentication or Twilio, plus a privacy review.
 
-Google sign-in stores only the name, email, and method in the session. The phone
-flow stores the phone number and method. Session cookies are `HttpOnly` and
-`SameSite=Lax`, and `Secure` when `BANKISM_ENV=production`.
+The first successful sign-in creates the account; a later sign-in with the same
+Google subject or phone number reuses it. The time the privacy notice was accepted
+is recorded in the `users` table in the `accepted_privacy_at` column. The database
+is created on first run, and an older database without that column is upgraded in
+place. Session cookies are `HttpOnly` and `SameSite=Lax`, and `Secure` when
+`BANKISM_ENV=production`.
+
+## Privacy notice, export, and deletion
+
+The privacy notice at `/privacy` explains in plain language what the
+demonstration collects and does not collect. It states that account numbers are
+reduced to their last four digits, that phone codes are demonstration codes, that
+no data is shared with third parties, and that this is a student prototype and not
+a regulated bank.
+
+The profile page's "Privacy and data" section provides two controls for the
+signed-in user:
+
+- **Download my data** calls `GET /api/account/export` and saves the profile and
+  bank details as a JSON file.
+- **Delete my account** opens a confirmation step that requires typing `DELETE`.
+  On confirmation it calls `DELETE /api/account`, which removes the user row, the
+  bank details row, and any login code for that phone number, then signs the user
+  out.
+
+Both endpoints require a signed-in session and return `401` otherwise.
+
+## Demonstration limits
+
+- Sign-in, saved bank details, and the privacy controls are a working prototype
+  over SQLite, but the profile's banking fields are still a non-saving
+  demonstration form.
+- Phone verification is not real authentication and no SMS is sent.
+- On a free hosting tier with an ephemeral filesystem, the database file may be
+  reset when the service restarts. A production deployment needs a managed
+  database and a real identity provider.
 
 ```bash
 curl -X POST http://127.0.0.1:5000/evaluate \
@@ -311,9 +357,9 @@ Run pytest:
 pytest -v
 ```
 
-All 44 unit and integration tests will execute and output a final pass count summary:
+All 57 unit and integration tests will execute and output a final pass count summary:
 ```text
 ============================= BANKISM TEST SUMMARY =============================
-PASSED TESTS COUNT: 44 / 44
-============================== TOTAL EXECUTED: 44 ==============================
+PASSED TESTS COUNT: 57 / 57
+============================== TOTAL EXECUTED: 57 ==============================
 ```

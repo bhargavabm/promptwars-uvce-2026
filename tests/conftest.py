@@ -3,6 +3,12 @@
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _temporary_database(tmp_path, monkeypatch):
+    """Point every test at a fresh temporary SQLite database."""
+    monkeypatch.setenv("BANKISM_DB", str(tmp_path / "bankism-test.db"))
+
+
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """Print pass count and test execution summary at the end of the test run."""
     passed = len(terminalreporter.stats.get("passed", []))

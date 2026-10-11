@@ -1,20 +1,19 @@
 /* Bankism shared stylesheet.
-   Restrained, single-column layout with a neutral palette: light grey page,
-   white cards, near-black text, one deep blue accent. No gradients, shadows,
-   filled badges, icons, or bright colours. */
+   One centred container, a restrained navy and gold palette, and plain
+   controls. No gradients, shadows, badges, or icons. */
 
 :root {
-  --bg: #f4f6f8;
-  --panel: #ffffff;
-  --border: #d9dee4;
-  --text: #1f2933;
-  --muted: #5b6670;
-  --accent: #1f4e79;
-  --accent-dark: #163a5a;
-  --accent-tint: #eef3f8;
+  --navy: #14213d;
+  --navy-dark: #0e1830;
+  --gold: #c8a951;
+  --gold-dark: #b8953f;
+  --slate: #5b6670;
+  --ink: #1f2933;
+  --paper: #f4f6f8;
+  --card: #ffffff;
+  --line: #d9dee4;
   --approved: #2d6a4f;
   --blocked: #9b2c2c;
-  --focus: #1f4e79;
 }
 
 * {
@@ -27,8 +26,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--paper);
+  color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
   font-size: 16px;
@@ -37,31 +36,43 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--navy);
 }
 
 a:focus-visible,
 .btn:focus-visible,
 .checkbox:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
+}
+
+/* ---------- Shared container ---------- */
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 /* ---------- Navigation ---------- */
 
 .nav {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
-  padding: 12px 16px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .nav-brand {
-  color: var(--text);
+  color: var(--navy);
   font-weight: 600;
   text-decoration: none;
 }
@@ -69,11 +80,12 @@ a:focus-visible,
 .nav-links {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 16px;
 }
 
 .nav-links a {
-  color: var(--accent);
+  color: var(--navy);
   text-decoration: none;
 }
 
@@ -81,40 +93,10 @@ a:focus-visible,
   text-decoration: underline;
 }
 
-.nav-auth {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav-user {
-  color: var(--text);
-}
-
-.nav-signout {
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--accent);
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.nav-signout:hover {
-  color: var(--accent-dark);
-}
-
 /* ---------- Layout ---------- */
 
-.container {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 24px 16px 48px;
-}
-
 .header {
-  margin-bottom: 24px;
+  margin: 24px 0;
 }
 
 .header h1 {
@@ -124,12 +106,16 @@ a:focus-visible,
 
 .subtitle {
   margin: 0;
-  color: var(--muted);
+  color: var(--slate);
 }
 
 .section-title {
-  margin: 0 0 12px;
+  margin: 24px 0 12px;
   font-size: 1.15rem;
+}
+
+.section-title:first-child {
+  margin-top: 0;
 }
 
 .section-title + .field,
@@ -138,8 +124,8 @@ a:focus-visible,
 }
 
 .card {
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 4px;
   padding: 20px;
   margin-bottom: 24px;
@@ -149,17 +135,15 @@ a:focus-visible,
 
 .hero {
   width: 100%;
-  padding: 96px 16px;
-  background: #14213d;
-  text-align: center;
+  padding: 96px 0;
+  background: var(--navy);
 }
 
 .hero-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 720px;
-  margin: 0 auto;
+  text-align: center;
 }
 
 .hero-title {
@@ -172,7 +156,7 @@ a:focus-visible,
 }
 
 .hero-subtitle {
-  margin: 0 0 28px;
+  margin: 0 0 16px;
   max-width: 100%;
   font-size: 20px;
   font-weight: 300;
@@ -180,20 +164,15 @@ a:focus-visible,
 }
 
 .hero-btn {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
   border-radius: 4px;
-  background: #c8a951;
-  border-color: #c8a951;
-  color: #14213d;
 }
 
 .hero-btn:hover {
-  background: #b8953f;
-  border-color: #b8953f;
-}
-
-.hero-btn:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 2px;
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
 }
 
 @media (min-width: 760px) {
@@ -216,11 +195,17 @@ a:focus-visible,
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--panel);
-  color: var(--text);
+  background: var(--card);
+  color: var(--ink);
   font: inherit;
+}
+
+.input:disabled,
+.textarea:disabled {
+  background: var(--paper);
+  color: var(--slate);
 }
 
 .textarea {
@@ -229,7 +214,7 @@ a:focus-visible,
 
 .input:focus,
 .textarea:focus {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
@@ -244,11 +229,11 @@ a:focus-visible,
 .notice {
   margin: 0 0 20px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--navy);
   border-radius: 4px;
-  background: var(--accent-tint);
-  color: var(--text);
+  background: #eef1f6;
+  color: var(--ink);
 }
 
 .consent-list {
@@ -277,29 +262,33 @@ a:focus-visible,
   flex: 0 0 auto;
 }
 
+.checkbox:disabled {
+  cursor: default;
+}
+
 /* ---------- Buttons ---------- */
 
 .btn {
   display: inline-block;
   padding: 9px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--panel);
-  color: var(--text);
+  background: var(--card);
+  color: var(--ink);
   font: inherit;
   text-decoration: none;
   cursor: pointer;
 }
 
 .btn-primary {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--navy);
+  background: var(--navy);
   color: #ffffff;
 }
 
 .btn-primary:hover {
-  background: var(--accent-dark);
-  border-color: var(--accent-dark);
+  background: var(--navy-dark);
+  border-color: var(--navy-dark);
 }
 
 .btn:disabled {
@@ -318,7 +307,7 @@ a:focus-visible,
 .hint {
   flex: 1 1 100%;
   margin: 4px 0 0;
-  color: var(--muted);
+  color: var(--slate);
   font-size: 0.9rem;
 }
 
@@ -331,25 +320,25 @@ a:focus-visible,
   gap: 8px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .examples-label {
-  color: var(--muted);
+  color: var(--slate);
 }
 
 .btn-example {
   padding: 8px 12px;
   font-size: 0.9rem;
   line-height: 1.2;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .btn-example:hover {
-  background: var(--accent-tint);
-  border-color: var(--accent);
+  background: var(--paper);
+  border-color: var(--navy);
 }
 
 /* ---------- Status and result ---------- */
@@ -360,11 +349,11 @@ a:focus-visible,
 
 .status-text {
   margin: 0;
-  color: var(--muted);
+  color: var(--slate);
 }
 
 .result {
-  border-left: 4px solid var(--border);
+  border-left: 4px solid var(--line);
 }
 
 .result[data-verdict="approved"] {
@@ -397,7 +386,7 @@ a:focus-visible,
 .verdict-table th,
 .verdict-table td {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
   overflow-wrap: anywhere;
@@ -406,7 +395,7 @@ a:focus-visible,
 .verdict-table th {
   width: 180px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--slate);
 }
 
 .verdict-table tr:last-child th,
@@ -414,116 +403,32 @@ a:focus-visible,
   border-bottom: none;
 }
 
-/* ---------- Sign-in modal ---------- */
-
-body.modal-open {
-  overflow: hidden;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(31, 41, 51, 0.55);
-}
-
-.modal-overlay[hidden] {
-  display: none;
-}
-
-.modal {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 24px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-}
-
-.modal h2 {
-  margin: 0 0 8px;
-  font-size: 1.4rem;
-}
-
-.modal h3 {
-  margin: 16px 0 8px;
-  font-size: 1.05rem;
-}
-
-.modal-lead {
-  margin: 0 0 16px;
-  color: var(--muted);
-}
-
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 4px 8px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--panel);
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.modal-close:hover {
-  color: var(--text);
-  border-color: var(--accent);
-}
-
-.modal-wide {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-.modal-rule {
-  margin: 20px 0 0;
-  border: none;
-  border-top: 1px solid var(--border);
-}
-
-.modal .field .btn {
-  margin-top: 8px;
-}
-
-.modal-note {
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.modal-message {
-  margin: 10px 0 0;
-  color: var(--blocked);
-  font-size: 0.9rem;
-}
-
-.modal-skip {
-  display: inline-block;
-  margin-top: 16px;
-  color: var(--accent);
-}
-
 /* ---------- Footer ---------- */
 
 .footer {
-  background: var(--panel);
-  border-top: 1px solid var(--border);
-  padding: 20px 16px;
-  color: var(--muted);
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+  color: var(--slate);
   font-size: 0.9rem;
   text-align: center;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 0 0 12px;
+}
+
+.footer-links a {
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
 }
 
 .footer p {
@@ -539,7 +444,7 @@ body.modal-open {
   position: relative;
   display: inline-block;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--navy);
 }
 
 .credit-line::after {
@@ -549,7 +454,7 @@ body.modal-open {
   bottom: -2px;
   height: 2px;
   width: 0;
-  background: var(--accent);
+  background: var(--navy);
   animation: credit-underline 3s ease-in-out infinite;
 }
 
@@ -578,9 +483,18 @@ body.modal-open {
 
 /* ---------- Small screens ---------- */
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .hero {
-    padding: 64px 16px;
+    padding: 64px 0;
   }
 
   .hero-title {
@@ -593,10 +507,6 @@ body.modal-open {
 
   .card {
     padding: 16px;
-  }
-
-  .modal {
-    padding: 20px;
   }
 
   .verdict-table th {

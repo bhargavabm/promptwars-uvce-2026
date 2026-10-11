@@ -6,6 +6,8 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+import db
 from app import app
 from guard.classifier import (
     ClassifierResult,
@@ -340,12 +342,20 @@ def test_landing_page(client):
     assert "Bankism" in body
     assert 'href="/check"' in body
     assert 'href="/profile"' in body
+    assert 'href="/privacy"' in body
     assert "How screening works" not in body
     assert "What it blocks" not in body
     assert "Bhargava" in body
-    assert "Sign in to Bankism" in body
-    assert "Sign in to continue to the firewall tools." in body
     assert "Screening every banking message before it moves money." in body
+
+
+def test_landing_page_has_no_signin_ui(client):
+    """GET / does not render the removed sign-in interface."""
+    response = client.get("/")
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Create account" not in body
+    assert "Sign in to Bankism" not in body
 
 
 def test_check_page(client):
@@ -575,3 +585,92 @@ def test_evaluate_zero_width_flow(client):
     data = response.get_json()
     assert data["verdict"] == "blocked"
     assert "R01" in data["triggered_rules"]
+
+
+# =========================================================================
+# 6. PRIVACY AND ACCOUNT TESTS
+# =========================================================================
+
+def test_privacy_page(client):
+    """GET /privacy returns the privacy notice with its first heading."""
+    response = client.get("/privacy")
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "What we collect" in body
+
+
+def test_phone_signin_creates_and_reuses_account():
+    """The first phone sign-in creates a user and the second reuses it."""
+    phone = "+919000000001"
+
+    with app.test_client() as first:
+        response = first.post(
+            "/auth/phone/verify", json={"phone": phone, "code": "123456"}
+        )
+        assert response.status_code == 200
+        assert response.get_json()["signed_in"] is True
+
+    with app.test_client() as second:
+        response = second.post(
+            "/auth/phone/verify", json={"phone": phone, "code": "123456"}
+        )
+        assert response.status_code == 200
+        assert response.get_json()["signed_in"] is True
+
+    conn = db.connect()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) AS total FROM users WHERE phone = ?", (phone,)
+        ).fetchone()
+    finally:
+        conn.close()
+    assert row["total"] == 1
+
+
+def test_account_export_requires_sign_in(client):
+    """GET /api/account/export returns 401 when signed out."""
+    response = client.get("/api/account/export")
+    assert response.status_code == 401
+
+
+def test_account_export_returns_user_data(client):
+    """GET /api/account/export returns the signed-in user's profile."""
+    phone = "+919000000002"
+    client.post("/auth/phone/verify", json={"phone": phone, "code": "123456"})
+
+    response = client.get("/api/account/export")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["profile"]["phone"] == phone
+    assert "bank_details" in data
+
+
+def test_account_delete_requires_sign_in(client):
+    """DELETE /api/account returns 401 when signed out."""
+    response = client.delete("/api/account")
+    assert response.status_code == 401
+
+
+def test_account_delete_removes_user_and_bank_details(client):
+    """DELETE /api/account removes the user row and any bank details row."""
+    phone = "+919000000003"
+    client.post("/auth/phone/verify", json={"phone": phone, "code": "123456"})
+
+    conn = db.connect()
+    try:
+        user = conn.execute(
+            "SELECT * FROM users WHERE phone = ?", (phone,)
+        ).fetchone()
+    finally:
+        conn.close()
+    assert user is not None
+    db.save_bank_details(
+        user["id"], "Test Holder", "Test Bank", "ABCD0123456", "4321"
+    )
+
+    response = client.delete("/api/account")
+    assert response.status_code == 200
+    assert response.get_json() == {"deleted": True}
+    assert client.get("/auth/session").get_json()["signed_in"] is False
+    assert db.get_user(user["id"]) is None
+    assert db.get_bank_details(user["id"]) is None
