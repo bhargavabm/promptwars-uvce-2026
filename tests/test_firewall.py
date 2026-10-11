@@ -547,10 +547,20 @@ def test_security_headers_present(client):
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
     assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["Strict-Transport-Security"].startswith("max-age=")
+    assert response.headers["Permissions-Policy"]
+    assert response.headers["Cross-Origin-Opener-Policy"] == "same-origin"
+    assert response.headers["Cross-Origin-Resource-Policy"] == "same-origin"
+    assert response.headers["X-Permitted-Cross-Domain-Policies"] == "none"
     csp = response.headers["Content-Security-Policy"]
     assert "default-src 'self'" in csp
-    assert "script-src 'self' https://accounts.google.com" in csp
-    assert "font-src 'self' https://fonts.gstatic.com" in csp
+    assert "script-src 'self'" in csp
+    assert "object-src 'none'" in csp
+    assert "frame-ancestors 'none'" in csp
+    assert "base-uri 'self'" in csp
+    # No third-party origins should be permitted.
+    assert "google" not in csp
+    assert "http://" not in csp and "https://" not in csp
 
 
 def test_security_headers_on_evaluate_response(client):
@@ -561,6 +571,7 @@ def test_security_headers_on_evaluate_response(client):
     assert response.headers["Content-Security-Policy"].startswith(
         "default-src 'self'"
     )
+    assert response.headers.get("Cache-Control") == "no-store"
 
 
 def test_static_assets_use_cache_control(client):
